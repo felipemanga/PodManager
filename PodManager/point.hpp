@@ -2,6 +2,14 @@
 
 typedef SFixed<23,8> Fixed;
 
+/* Incorrect but goot enough */
+template<>
+constexpr SFixed<23,8> operator *(const SFixed<23,8> & left, const SFixed<23,8> & right)
+{	
+  return SFixed<23, 8>::fromInternal(left.getInternal() * right.getInternal() >> 16);
+}
+/* */
+
 Fixed COSfp( Fixed a ){
   return Fixed::fromInternal( COS16( a.getInteger() ) );
 }
@@ -9,108 +17,6 @@ Fixed COSfp( Fixed a ){
 Fixed SINfp( Fixed a ){
   return Fixed::fromInternal( SIN16( a.getInteger() ) );
 }
-
-/*
-class Fixed {
-public:
-
-  union {
-    struct{
-      uint8_t lo;
-      int16_t hi;
-      uint8_t ov;
-    };
-    int32_t v;
-  };
-
-  Fixed() = default;
-
-  Fixed(int16_t i){
-    hi = i;
-    lo = ov = 0;
-  }
-
-  Fixed(fraction f){
-    *this = f.v;
-  }
-
-  Fixed &operator =(const Fixed &i){
-    v = i.v;
-    return *this;
-  }
-
-  Fixed &operator =(int16_t i){
-    hi = i;
-    lo = 0;
-    ov = 0;
-    return *this;
-  }
-
-  Fixed operator *(const Fixed &i){
-    Fixed r;
-    r.v = (v * i.v) >> 8;
-    return r;
-  }
-
-  Fixed operator *(const int16_t i){
-    Fixed r;
-    r.v = v * i;
-    return r;
-  }
-
-  Fixed operator +(const Fixed &i){
-    Fixed r;
-    r.v = v + i.v;
-    return r;
-  }
-
-  Fixed operator -(const Fixed &i){
-    Fixed r;
-    r.v = v - i.v;
-    return r;
-  }
-
-  Fixed operator -(){
-    Fixed r;
-    r.hi = -r.hi;
-    r.lo = r.lo;
-    return r;
-  }
-  
-  Fixed operator +=( const Fixed &i ){
-    v += i.v;
-    return *this;
-  }
-
-  Fixed operator +=( int16_t i ){
-    v += i;
-    return *this;
-  }
-
-
-  Fixed operator *=( int16_t i ){
-    v *= i;
-    return *this;
-  }
-  
-  Fixed &operator >>( int16_t s ){
-    v >>= s;
-    return *this;
-  }
-
-  operator int16_t(){
-    return hi;
-  }
-
-  static Fixed fraction( int16_t i ){
-    Fixed r;
-    r.ov = r.hi = -(i<0);
-    r.lo = static_cast<uint8_t>(i);
-    return r;
-  }
-};
-
-*/
 
 template<typename Number>
 class Matrix4 {
