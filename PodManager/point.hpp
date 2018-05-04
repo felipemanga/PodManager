@@ -2,13 +2,11 @@
 
 typedef SFixed<23,8> Fixed;
 
-/* Incorrect but goot enough */
 template<>
 constexpr SFixed<23,8> operator *(const SFixed<23,8> & left, const SFixed<23,8> & right)
 {	
-  return SFixed<23, 8>::fromInternal(left.getInternal() * right.getInternal() >> 16);
+  return SFixed<23, 8>::fromInternal( (int64_t(left.getInternal()) * right.getInternal()) >> 8);
 }
-/* */
 
 Fixed COSfp( Fixed a ){
   return Fixed::fromInternal( COS16( a.getInteger() ) );
