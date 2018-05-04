@@ -1,11 +1,16 @@
 #include "FixedPoints/FixedPoints.h"
 
+extern "C" {
+  int32_t qmul( int32_t l, int32_t r );
+}
+
 typedef SFixed<23,8> Fixed;
 
 template<>
-constexpr SFixed<23,8> operator *(const SFixed<23,8> & left, const SFixed<23,8> & right)
-{	
-  return SFixed<23, 8>::fromInternal( (int64_t(left.getInternal()) * right.getInternal()) >> 8);
+SFixed<23,8> operator *(const SFixed<23,8> & left, const SFixed<23,8> & right)
+{
+  return SFixed<23, 8>::fromInternal( int64_t(left.getInternal())*right.getInternal() >> 16 );
+  // return SFixed<23, 8>::fromInternal( qmul(left.getInternal(), right.getInternal()) );
 }
 
 Fixed COSfp( Fixed a ){
