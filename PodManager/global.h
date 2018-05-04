@@ -1,5 +1,6 @@
 #include "music.h"
 
+/*
 #include "bmp/title.h"
 
 #include "bmp/tiles.h"
@@ -35,6 +36,7 @@ struct {
 	{ shot2_comp_a, -4, -4 }
     }
 };
+*/
 
 uint16_t seed, seedSequence;
 

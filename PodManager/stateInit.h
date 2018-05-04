@@ -12,7 +12,7 @@ STATE( Init,
 	 scope.title
 	   .init()
 	   .setPosition( 0, 64 )
-	   .setAnimation( &titleAnim )
+	   // .setAnimation( &titleAnim )
 	   .moveTo(0, 0)
 	   .setTweenWeight(2)
 	   .show()
