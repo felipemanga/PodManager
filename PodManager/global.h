@@ -1,5 +1,7 @@
 #include "music.h"
 
+#include "track.h"
+
 /*
 #include "bmp/title.h"
 

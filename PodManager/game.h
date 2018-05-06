@@ -613,7 +613,10 @@ void tick(){
     func = (StateRef) pgm_read_word( stateUpdate + uint8_t(state) );
     if( func ) (*func)();
 
-    flushDrawQueue();
+    // flushDrawQueue();
+
+    // arduboy.setCursor(0,0);
+    // arduboy.print( arduboy.cpuLoad() );
   
     arduboy.display();
 

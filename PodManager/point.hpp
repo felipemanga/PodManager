@@ -1,17 +1,14 @@
 #include "FixedPoints/FixedPoints.h"
 
-extern "C" {
-  int32_t qmul( int32_t l, int32_t r );
-}
-
-typedef SFixed<23,8> Fixed;
-
 template<>
 SFixed<23,8> operator *(const SFixed<23,8> & left, const SFixed<23,8> & right)
 {
-  return SFixed<23, 8>::fromInternal( int64_t(left.getInternal())*right.getInternal() >> 16 );
-  // return SFixed<23, 8>::fromInternal( qmul(left.getInternal(), right.getInternal()) );
+  int64_t r = left.getInternal() * right.getInternal();
+  uint8_t *b = reinterpret_cast<uint8_t *>(&r);
+  return SFixed<23, 8>::fromInternal( *reinterpret_cast<int32_t*>(b+1) );
 }
+
+typedef SFixed<23,8> Fixed;
 
 Fixed COSfp( Fixed a ){
   return Fixed::fromInternal( COS16( a.getInteger() ) );
@@ -197,6 +194,36 @@ public:
 
     return *this;
   }
+
+  void render(){
+
+    Fixed fovz = 64 + z;
+    int16_t x = ((64 * this->x) / fovz + 64).getInteger();
+    int16_t y = (32 - (64 * this->y) / fovz).getInteger();	   
+    auto size = ((64 * this->size) / fovz).getInteger();
+    auto hsize = size>>1;
+    auto sx = x - hsize;
+    auto sy = y - hsize;
+    auto ex = sx + size;
+    auto ey = sy + size;
+    if( sx < 0 ) sx = 0;
+    if( ex > 128 ) ex = 128;
+    if( sy < 0 ) sy = 0;
+    if( ey > 64 ) ey = 64;
+	     
+    if( sx>=ex || sy>=ey )
+      return;
+
+    /* * /
+       ey -= sy;     
+       for( x=sx; x!=ex; ++x ){
+       arduboy.drawFasterVLine( x, sy, ey, tmp.color );
+       }
+       /*/
+    arduboy.fillCircle( x, y, hsize, this->color );
+    /* */
+    
+  }
   
 };
 
@@ -204,8 +231,18 @@ typedef Point3D *Point3Dp;
 typedef Point3D const *cPoint3Dp;
 
 const Point3D mesh[] PROGMEM = {
-  {0, 0, 0, 0, 32},
-  {32, 0, 0, 0xAA, 16}
+  { 5, 8, -24, 1, 14},
+  {-5, 8, -24, 1, 14},
+  { 0,12, -34, 1, 14},
+  { 16, 0, 38, 1, 24},
+  {-16, 0, 38, 1, 24},
+  { 16, 0, 28, 1, 24},
+  {-16, 0, 28, 1, 24},
+  { 16, 0, 16, 1, 16},
+  {-16, 0, 16, 1, 16},
+  { 16, 0, 10, 0xFF, 10},
+  {-16, 0, 10, 0xFF, 10},
+  {0, 0, 28, 0xFF, 7}
 };
 
 class Node {
@@ -215,6 +252,8 @@ public:
   uint8_t vertexCount;
   cPoint3Dp mesh;
   Matrix transform;
+
+  int8_t sx, sy, sz;
 
   void init(
     int16_t x, int16_t y, int16_t z,
@@ -229,5 +268,8 @@ public:
     this->rotZ = rotZ;
     vertexCount = vc;
     this->mesh = mesh;
+    this->sx = 0;
+    this->sy = 0;
+    this->sz = 0;
   }
 };

@@ -1,8 +1,10 @@
 #include <Arduboy2.h>
 
-class Arduboy2Ext : public Arduboy2Base {
+typedef Arduboy2 AB_BASE;
+
+class Arduboy2Ext : public AB_BASE {
 public:    
-  Arduboy2Ext() : Arduboy2Base() { }
+  Arduboy2Ext() : AB_BASE() { }
     
   void drawCompressed(int16_t sx, int16_t sy, const uint8_t *bitmap, uint8_t color, bool mirror=false );
 
@@ -63,6 +65,13 @@ public:
 
       if( y+h > HEIGHT )
 	h = HEIGHT - y;
+
+      if( color & color != 0xFF ){
+	uint8_t c=(uint8_t(x)+uint8_t(frameCount))&1;
+	if( c ) color = 0xAA;
+	else color = 0x55;
+      }
+	
 
       uint16_t row = x + (y / 8) * WIDTH;
       uint8_t offset = y&7;
