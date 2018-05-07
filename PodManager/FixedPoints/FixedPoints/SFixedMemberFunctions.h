@@ -47,10 +47,19 @@ constexpr typename SFixed<Integer, Fraction>::InternalType SFixed<Integer, Fract
 	return this->value;
 }
 
+union U23_8{
+  SFixed<23,8>::IntegerType value;
+  struct {
+    uint8_t pad;
+    SFixed<23,8>::IntegerType offset;
+  };
+};
+
 template< unsigned Integer, unsigned Fraction >
 constexpr typename SFixed<Integer, Fraction>::IntegerType SFixed<Integer, Fraction>::getInteger(void) const
 {
-	return (static_cast<IntegerType>(this->value >> IntegerShift) & IntegerMask) | ((this->value < 0) ? ~IntegerMask : 0);
+  return U23_8{this->value}.offset;
+  // return (static_cast<IntegerType>(this->value >> IntegerShift) & IntegerMask) | ((this->value < 0) ? ~IntegerMask : 0);
 }
 
 template< unsigned Integer, unsigned Fraction >

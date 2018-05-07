@@ -615,8 +615,8 @@ void tick(){
 
     // flushDrawQueue();
 
-    // arduboy.setCursor(0,0);
-    // arduboy.print( arduboy.cpuLoad() );
+    arduboy.setCursor(0,0);
+    arduboy.print( arduboy.cpuLoad() );
   
     arduboy.display();
 

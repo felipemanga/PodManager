@@ -18,6 +18,7 @@ Fixed SINfp( Fixed a ){
   return Fixed::fromInternal( SIN16( a.getInteger() ) );
 }
 
+
 template<typename Number>
 class Matrix4 {
 public:
@@ -195,7 +196,7 @@ public:
     return *this;
   }
 
-  void render(){
+  void render( bool square ){
 
     Fixed fovz = 64 + z;
     int16_t x = ((64 * this->x) / fovz + 64).getInteger();
@@ -214,14 +215,14 @@ public:
     if( sx>=ex || sy>=ey )
       return;
 
-    /* * /
+    if( square ){
        ey -= sy;     
        for( x=sx; x!=ex; ++x ){
-       arduboy.drawFasterVLine( x, sy, ey, tmp.color );
+	 arduboy.drawFasterVLine( x, sy, ey, color );
        }
-       /*/
-    arduboy.fillCircle( x, y, hsize, this->color );
-    /* */
+    }else{
+      arduboy.fillCircle( x, y, hsize, this->color );
+    }
     
   }
   
@@ -245,6 +246,25 @@ const Point3D mesh[] PROGMEM = {
   {0, 0, 28, 0xFF, 7}
 };
 
+const Point3D player_mesh[] PROGMEM = {
+  { 5, 8, -24, 0xFF, 14},
+  {-5, 8, -24, 0xFF, 14},
+  { 0,12, -34, 0xFF, 14},
+  { 16, 0, 38, 0xFF, 24},
+  {-16, 0, 38, 0xFF, 24},
+  { 16, 0, 28, 0xFF, 24},
+  {-16, 0, 28, 0xFF, 24},
+  { 16, 0, 16, 0xFF, 16},
+  {-16, 0, 16, 0xFF, 16},
+  { 16, 0, 10, 0xF0, 10},
+  {-16, 0, 10, 0xF0, 10},
+  {0, 0, 28, 0xF0, 7}
+};
+
+class Node;
+
+typedef void (*UpdateNode)( Node & );
+
 class Node {
 public:
   Fixed x, y, z;
@@ -252,24 +272,125 @@ public:
   uint8_t vertexCount;
   cPoint3Dp mesh;
   Matrix transform;
+  UpdateNode update;
 
-  int8_t sx, sy, sz;
+  int8_t sx, sy, sz, flags;
+  int8_t screenX, screenY;
 
-  void init(
-    int16_t x, int16_t y, int16_t z,
-    uint8_t rotX, uint8_t rotY, uint8_t rotZ,
-    uint8_t vc, cPoint3Dp mesh
-	    ){
-    this->x = x;
-    this->y = y;
-    this->z = z;
-    this->rotX = rotX;
-    this->rotY = rotY;
-    this->rotZ = rotZ;
+  void init( cPoint3Dp mesh, uint8_t vc ){
+
+    x=0;   y=0;  z=0;
+    rotX=0; rotY=0; rotZ=0;
+    update = NULL;
     vertexCount = vc;
     this->mesh = mesh;
-    this->sx = 0;
-    this->sy = 0;
-    this->sz = 0;
+    
   }
+
+  Node &setPosition( Fixed nx, Fixed ny, Fixed nz ){
+
+    x = nx; y = ny; z = nz;
+    return *this;
+
+  }
+  
 };
+
+template< uint8_t pointCount, uint8_t nodeCount >
+class Scene {
+public:
+
+  struct ZBufferItem {
+    uint8_t nodeId;
+    uint8_t pointId;
+  } zBuffer[ pointCount ];
+  
+  Node nodeList[ nodeCount ];
+  Matrix camera;
+
+  uint8_t usedPointCount, usedNodeCount;
+  
+  void init(){
+
+    usedPointCount = 0;
+    usedNodeCount = 0;
+    
+    for( int i=0; i<pointCount; ++i ){
+      zBuffer[i].nodeId = 0xFF;
+    }
+    
+  }
+
+  Node &initNode( cPoint3Dp mesh, uint8_t pc ){
+    
+    Node &node = nodeList[usedNodeCount];
+    node.init( mesh, pc );
+    
+    for( uint8_t v=0; v<pc; v++ ){
+      auto &zbi = zBuffer[usedPointCount++];
+      zbi.nodeId = usedNodeCount;
+      zbi.pointId = v;
+    }
+
+    usedNodeCount++;
+    
+    return node;
+    
+  }
+
+  void update(){
+    
+    for( uint8_t i=0; i<usedNodeCount; ++i ){
+      Node &node = nodeList[i];
+
+      if( node.update )
+	node.update( node );
+
+      Matrix &mat = node.transform;
+      mat = camera;
+      mat.translate( node.x, node.y, node.z );
+      mat.rotate( node.rotX, node.rotY, node.rotZ );
+
+    }
+
+    cPoint3Dp prevptr = nullptr;
+    Fixed prevZ;
+    uint8_t prevI;
+
+    for( uint8_t i=0; i<usedPointCount; ++i ){
+      if( zBuffer[i].nodeId == 0xFF )
+	continue;
+      
+      auto zbi = zBuffer[i];
+
+      Node &node = nodeList[ zbi.nodeId ];
+
+      Point3D tmp;
+	   
+      tmp.load( node.mesh[ zbi.pointId ] );
+
+      tmp *= node.transform;
+
+      node.screenX = tmp.x.getInteger();
+      node.screenY = tmp.y.getInteger();
+
+      if( tmp.z > 0 ){
+
+	if( i && prevZ < tmp.z ){
+	  zBuffer[i] = zBuffer[prevI];
+	  zBuffer[prevI] = zbi;
+	}
+	prevZ = tmp.z;
+	prevI = i;
+
+	tmp.render( tmp.z > 250 );
+	     
+      }
+
+    }
+
+  }
+
+};
+
+typedef Scene<36,3> Scene36_3;

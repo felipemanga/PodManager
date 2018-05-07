@@ -68,7 +68,7 @@ public:
 	constexpr SFixed(const IntegerType & integer, const FractionType & fraction);
 
 	constexpr InternalType getInternal(void) const;
-	constexpr IntegerType getInteger(void) const;
+	constexpr IntegerType getInteger(void) const;	
 	constexpr FractionType getFraction(void) const;
 
 	constexpr explicit operator IntegerType(void) const;
