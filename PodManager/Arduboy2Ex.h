@@ -39,11 +39,11 @@ public:
   {
     drawFasterVLine(x0, y0-r, 2*r+1, color);
     
-    int16_t f = 1 - r;
-    int16_t ddF_x = 1;
-    int16_t ddF_y = -2 * r;
-    int16_t x = 0;
-    int16_t y = r;
+    int8_t f = 1 - r;
+    int8_t ddF_x = 1;
+    int8_t ddF_y = -2 * r;
+    int8_t x = 0;
+    int8_t y = r;
 
     while( x < y ){
       
@@ -57,12 +57,88 @@ public:
       ddF_x += 2;
       f += ddF_x;
 
-	drawFasterVLine(x0+x, y0-y, 2*y+1, color);
-	drawFasterVLine(x0+y, y0-x, 2*x+1, color);
-	drawFasterVLine(x0-x, y0-y, 2*y+1, color);
-	drawFasterVLine(x0-y, y0-x, 2*x+1, color);
+      drawSymmetricVLine(x0, x, y0-y, 2*y+1, color);
+      drawSymmetricVLine(x0, y, y0-x, 2*x+1, color);
+	
     }
   }
+
+    void drawSymmetricVLine( int16_t x, int8_t xoff, int16_t y, uint8_t h, uint8_t color=0xFF )
+    {
+
+	if( static_cast<uint16_t>(x+xoff)>=WIDTH || !xoff ){
+	    drawFasterVLine( x-xoff, y, h, color );
+	    return;
+	}
+	if( static_cast<uint16_t>(x-xoff)>=WIDTH ){
+	    drawFasterVLine( x+xoff, y, h, color );
+	    return;
+	}
+
+	if( y>=HEIGHT )
+	    return;
+
+	if( xoff < 0 )
+	    xoff = -xoff;
+	x -= xoff;
+	xoff = xoff << 1;
+
+	if( y < 0 ){
+	    if( y+h < 0 ) return;
+	    h += y;
+	    y = 0;
+	}
+
+	if( y+h > HEIGHT )
+	    h = HEIGHT - y;
+
+	if( color==1 ){
+	    uint8_t c=(uint8_t(x)+uint8_t(frameCount))&1;
+	    if( c ) color = 0xAA;
+	    else color = 0x55;
+	}
+	
+
+      uint8_t *pixel = &sBuffer[x + (static_cast<uint8_t>(y) & 0xF8) * 16];
+      uint8_t offset = y&7;
+      
+      if( offset ){
+	
+	uint8_t mask = 0xFF;
+
+	if( h < 8-offset ){
+	  mask = pgm_read_byte( &rmask_bits[h+offset] );
+	  h = 0;
+	}else{
+	  h -= 8-offset;
+	}
+
+	mask &= pgm_read_byte( &mask_bits[ offset ] );
+	
+	pixel[0] = ( pixel[0] & ~mask ) | (color & mask);
+	pixel[xoff] = ( pixel[xoff] & ~mask ) | (color & mask);
+	
+	pixel += WIDTH;
+	
+      }
+      
+      while( h>=8 ){
+	
+	pixel[0] = pixel[xoff] = color;
+	pixel += WIDTH;	  
+	h -= 8;
+	  
+      }
+
+      if( h>0 ){
+	
+	uint8_t mask = 0xFF >> (8-h);
+	pixel[0] = ( pixel[0] & ~mask ) | (color & mask);
+	pixel[xoff] = ( pixel[xoff] & ~mask ) | (color & mask);
+	
+      }
+      
+    }
 
     void drawFasterVLine( int16_t x, int16_t y, uint8_t h, uint8_t color=0xFF )
     {

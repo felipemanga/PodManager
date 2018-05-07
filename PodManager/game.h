@@ -54,32 +54,12 @@ inline int16_t sine(unsigned char x)
         return (-pgm_read_byte(&sincos[255-x]));
 }
 
-typedef struct {
-  
-  int16_t v;
-  
-  operator int16_t(){
-    return v;
-  }
-  
-} fraction;
-
-inline int16_t SIN16( int16_t x ){
-  if( x < 0 )
-    x += 256;
+inline int16_t SIN( uint8_t x ){
   return sine( x );
 }
 
-inline int16_t COS16( int16_t x ){
-  return SIN16( x + 64 );
-}
-
-inline fraction SIN( int16_t x ){
-  return { SIN16( x ) };
-}
-
-inline fraction COS( int16_t x ){
-  return { COS16( x ) };
+inline int16_t COS( uint8_t x ){
+  return SIN( x + 64 );
 }
 
 /* */

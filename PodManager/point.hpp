@@ -3,19 +3,25 @@
 template<>
 SFixed<23,8> operator *(const SFixed<23,8> & left, const SFixed<23,8> & right)
 {
-  int64_t r = left.getInternal() * right.getInternal();
-  uint8_t *b = reinterpret_cast<uint8_t *>(&r);
-  return SFixed<23, 8>::fromInternal( *reinterpret_cast<int32_t*>(b+1) );
+    auto leftInternal = left.getInternal();
+    auto rightInternal = right.getInternal();
+    
+    if( !leftInternal || !rightInternal )
+	return 0;
+
+    int64_t r = leftInternal * rightInternal;
+    uint8_t *b = reinterpret_cast<uint8_t *>(&r);
+    return SFixed<23, 8>::fromInternal( *reinterpret_cast<int32_t*>(b+1) );
 }
 
 typedef SFixed<23,8> Fixed;
 
 Fixed COSfp( Fixed a ){
-  return Fixed::fromInternal( COS16( a.getInteger() ) );
+  return Fixed::fromInternal( COS( a.getInteger() ) );
 }
 
 Fixed SINfp( Fixed a ){
-  return Fixed::fromInternal( SIN16( a.getInteger() ) );
+  return Fixed::fromInternal( SIN( a.getInteger() ) );
 }
 
 
@@ -107,6 +113,70 @@ public:
     
     return *this;
   }
+
+  Matrix4<Number> &setRotationX( const Number &x ){
+    auto p = this->a;
+    Number c = COSfp(x), s = SINfp(x);
+
+    p[0] = 1;    p[4] = 0;    p[8] =  0;
+    p[1] = 0;    p[5] = c;    p[9] = -s;
+    p[2] = 0;    p[6] = s;    p[10] = c;
+
+    p[3] = p[7] = p[11] = p[12] = p[13] = p[14] = 0;
+    p[15] = 1;
+    
+    return *this;
+  }
+
+
+  Matrix4<Number> &rotateY( const Number &x ){
+    auto p = this->a;
+    Number c = COSfp(x), s = SINfp(x);
+    const auto &ae = this->a;
+    auto &te = this->a;
+
+    auto a11 = ae[ 0 ], a12 = ae[ 4 ], a13 = ae[ 8 ],  a14 = ae[ 12 ];
+    auto a21 = ae[ 1 ], a22 = ae[ 5 ], a23 = ae[ 9 ],  a24 = ae[ 13 ];
+    auto a31 = ae[ 2 ], a32 = ae[ 6 ], a33 = ae[ 10 ], a34 = ae[ 14 ];
+    auto a41 = ae[ 3 ], a42 = ae[ 7 ], a43 = ae[ 11 ], a44 = ae[ 15 ];
+
+    te[ 0 ] = a11 * c + a13 * -s;
+    te[ 4 ] = a12;
+    te[ 8 ] = a11 * s + a13 * c;
+    te[ 12 ] = a14;
+
+    te[ 1 ] = a21 * c + a23 * -s;
+    te[ 5 ] = a22;
+    te[ 9 ] = a21 * s + a23 * c;
+    te[ 13 ] = a24;
+
+    te[ 2 ] = a31 * c + a33 * -s;
+    te[ 6 ] = a32;
+    te[ 10 ] = a31 * s + a33 * c;
+    te[ 14 ] = a34;
+
+    te[ 3 ] = a41 * c + a43 * -s;
+    te[ 7 ] = a42;
+    te[ 11 ] = a41 * s + a43 * c;
+    te[ 15 ] = a44;
+    
+    
+    return *this;
+  }        
+
+  Matrix4<Number> &setRotationY( const Number &x ){
+    auto p = this->a;
+    Number c = COSfp(x), s = SINfp(x);
+
+    p[0] = c;    p[4] = 0;    p[8] =  s;
+    p[1] = 0;    p[5] = 1;    p[9] =  0;
+    p[2] =-s;    p[6] = 0;    p[10] = c;
+
+    p[3] = p[7] = p[11] = p[12] = p[13] = p[14] = 0;
+    p[15] = 1;
+    
+    return *this;
+  }    
 
   Matrix4<Number> &rotate( const Number &x, const Number &y, const Number &z ){
     Matrix4<Number> tmp;
@@ -217,11 +287,11 @@ public:
 
     if( square ){
        ey -= sy;     
-       for( x=sx; x!=ex; ++x ){
-	 arduboy.drawFasterVLine( x, sy, ey, color );
+       for( sx=0; sx<=hsize; ++sx ){
+	   arduboy.drawSymmetricVLine( x, -sx, sy, ey, color );
        }
     }else{
-      arduboy.fillCircle( x, y, hsize, this->color );
+	arduboy.fillCircle( x, y, hsize, this->color );
     }
     
   }
@@ -343,7 +413,7 @@ public:
   }
 
   void update(){
-    
+
     for( uint8_t i=0; i<usedNodeCount; ++i ){
       Node &node = nodeList[i];
 
@@ -353,7 +423,12 @@ public:
       Matrix &mat = node.transform;
       mat = camera;
       mat.translate( node.x, node.y, node.z );
-      mat.rotate( node.rotX, node.rotY, node.rotZ );
+
+      //if( !node.rotX && !node.rotZ && node.rotY )
+      if( node.rotY )
+	  mat.rotateY( node.rotY );
+	  //else
+//	  mat.rotate( node.rotX, node.rotY, node.rotZ );
 
     }
 
@@ -397,4 +472,4 @@ public:
 
 };
 
-typedef Scene<36,3> Scene36_3;
+typedef Scene<40,3> Scene36_3;

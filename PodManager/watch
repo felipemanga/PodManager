@@ -10,7 +10,7 @@ inotifywait -rm -e CLOSE_WRITE ./* | while read file action; do
     success=$?
 
     if [ $success -eq 0 ] && [ $emupid -eq 0 ]; then
-       xdg-open build/PodMan.ino.hex
+       xdg-open build/PodManager.ino.hex
        emupid=1    
     fi
     

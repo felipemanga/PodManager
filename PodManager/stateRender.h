@@ -7,7 +7,7 @@ STATE( RenderMode,
        {
 
 	 scope.scene.init();
-	 scope.scene.camera.setRotation( 15, 0, 0 ).translate( 0, -60, 325 );
+	 scope.scene.camera.setRotationX( -15 ).translate( 0, -60, 325 );
 
 	 const uint8_t racerCount = 3;
 	 for( uint8_t i=0; i<racerCount; ++i ){
@@ -84,7 +84,7 @@ STATE( RenderMode,
 	 racer.rotY -= racer.sx;
 	 racer.x = SINfp( racer.rotY+64 ) * 256;
 	 racer.z = COSfp( racer.rotY+64 ) * 256;
-	 racer.rotX = (SINfp( racer.rotY*3 )*5).getInteger();
+	 // racer.rotX = (SINfp( racer.rotY*3 )*5).getInteger();
 	 
        }
        

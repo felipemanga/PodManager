@@ -7,7 +7,7 @@ Arduboy2Ext arduboy;
 void setup() {
   arduboy.boot();
   arduboy.flashlight();
-  arduboy.setFrameRate(50);
+  arduboy.setFrameRate(60);
 }
 
 void loop() {

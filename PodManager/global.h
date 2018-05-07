@@ -43,11 +43,11 @@ struct {
 uint16_t seed, seedSequence;
 
 uint16_t NOISE( uint8_t x, uint8_t y, uint8_t z ){
-    return ((SIN16( (uint16_t(((y)+seed)/z)*13) + (uint16_t(((x)+seed)/z)*78) )*289&0xFF)*z);
+    return ((SIN( (uint16_t(((y)+seed)/z)*13) + (uint16_t(((x)+seed)/z)*78) )*289&0xFF)*z);
 }
 
 int8_t random(int8_t min, int8_t max){
-    return (SIN16( (arduboy.frameCount*13+(seedSequence++)*79)*seed )*23789&0x3FF>>2 ) % (max-min) + min;
+    return (SIN( (arduboy.frameCount*13+(seedSequence++)*79)*seed )*23789&0x3FF>>2 ) % (max-min) + min;
 }
 
 uint8_t noise3( uint8_t x, uint8_t y, uint8_t a, uint8_t b ){

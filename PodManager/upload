@@ -1,1 +1,1 @@
-arduino --board arduino:avr:leonardo --pref build.path=./build --upload PodMan.ino
+arduino --board arduino:avr:leonardo --pref build.path=./build --upload PodManager.ino
