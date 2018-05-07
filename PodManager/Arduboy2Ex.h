@@ -2,6 +2,31 @@
 
 typedef Arduboy2 AB_BASE;
 
+// extern const uint8_t bitshift_left[] PROGMEM;
+const uint8_t mask_bits[] PROGMEM = {
+  0xFF,
+  0xFE,
+  0xFC,
+  0xF8,
+  0xF0,
+  0xE0,
+  0xC0,
+  0x80,
+  0x00
+};
+
+const uint8_t rmask_bits[] PROGMEM = {
+  0x00,
+  0x01,
+  0x03,
+  0x07,
+  0x0F,
+  0x1F,
+  0x3F,
+  0x7F,
+  0xFF
+};
+
 class Arduboy2Ext : public AB_BASE {
 public:    
   Arduboy2Ext() : AB_BASE() { }
@@ -13,11 +38,7 @@ public:
   void fillCircle(int16_t x0, int16_t y0, uint8_t r, uint8_t color=0xFF)
   {
     drawFasterVLine(x0, y0-r, 2*r+1, color);
-    fillFastCircleHelper(x0, y0, r, 3, 0, color);
-  }
-
-  void fillFastCircleHelper(int16_t x0, int16_t y0, uint8_t r, uint8_t sides, int16_t delta, uint8_t color)
-  {
+    
     int16_t f = 1 - r;
     int16_t ddF_x = 1;
     int16_t ddF_y = -2 * r;
@@ -36,15 +57,10 @@ public:
       ddF_x += 2;
       f += ddF_x;
 
-      if( sides & 0x1 ){
-	drawFasterVLine(x0+x, y0-y, 2*y+1+delta, color);
-	drawFasterVLine(x0+y, y0-x, 2*x+1+delta, color);
-      }
-
-      if( sides & 0x2 ){
-	drawFasterVLine(x0-x, y0-y, 2*y+1+delta, color);
-	drawFasterVLine(x0-y, y0-x, 2*x+1+delta, color);
-      }
+	drawFasterVLine(x0+x, y0-y, 2*y+1, color);
+	drawFasterVLine(x0+y, y0-x, 2*x+1, color);
+	drawFasterVLine(x0-x, y0-y, 2*y+1, color);
+	drawFasterVLine(x0-y, y0-x, 2*x+1, color);
     }
   }
 
@@ -73,7 +89,7 @@ public:
       }
 	
 
-      uint16_t row = x + (y / 8) * WIDTH;
+      uint8_t *pixel = &sBuffer[x + (static_cast<uint8_t>(y) / 8) * WIDTH];
       uint8_t offset = y&7;
       
       if( offset ){
@@ -81,31 +97,31 @@ public:
 	uint8_t mask = 0xFF;
 
 	if( h < 8-offset ){
-	  mask >>= (8-h);
+	  mask = pgm_read_byte( &rmask_bits[h+offset] );
 	  h = 0;
 	}else{
 	  h -= 8-offset;
 	}
 
-	mask <<= offset;
+	mask &= pgm_read_byte( &mask_bits[ offset ] );
 	
-	sBuffer[row] = ( sBuffer[row] & ~mask ) | (color & mask);
-	row += WIDTH;
+	*pixel = ( *pixel & ~mask ) | (color & mask);
+	pixel += WIDTH;
 	
       }
       
       while( h>=8 ){
 	
-	sBuffer[row] = color;
+	*pixel = color;
+	pixel += WIDTH;	  
 	h -= 8;
-	row += WIDTH;	  
 	  
       }
 
       if( h>0 ){
 	
 	uint8_t mask = 0xFF >> (8-h);
-	sBuffer[row] = ( sBuffer[row] & ~mask ) | (color & mask);
+	*pixel = ( *pixel & ~mask ) | (color & mask);
 	
       }
       
