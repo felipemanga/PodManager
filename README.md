@@ -1,2 +1,2 @@
-# NowIEradicateRobots
-Now I Eradicate Robots - A game for the Arduboy
+# Formula POD
+A racing game for the third Arduboy game jam.
