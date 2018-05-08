@@ -82,6 +82,12 @@ STATE( RaceMode,
        
        void updateAI( Node &racer ){
 	 auto &ship = racers[ racer.flags ];
+
+	 if( ship.charge >= BOOST_COST ){
+	   ship.boost();
+	 }
+
+	 
 	 updatePhysics( racer );
        }
 
@@ -89,11 +95,9 @@ STATE( RaceMode,
 	 auto &ship = racers[ player.flags ];
 	       
 	 if( justPressed(A_BUTTON) && ship.charge >= JUMP_COST ){
-	   ship.jump = ship.maxJump;
-	   ship.charge -= JUMP_COST;
+	   ship.jump();
 	 }else if( justPressed(B_BUTTON) && ship.charge >= BOOST_COST ){
-	   ship.speed += ship.acceleration;
-	   ship.charge -= BOOST_COST;
+	   ship.boost();
 	 }
 
 	 updatePhysics( player );
@@ -107,11 +111,11 @@ STATE( RaceMode,
 	   ship.charge = min( ship.charge+ship.chargeSpeed, ship.maxCharge );
 	 }
 	   
-	 if( node.y <= 0 || ship.jump ){
+	 if( node.y <= 0 || ship.jumping ){
 	   	   
-	   if( ship.jump ){
+	   if( ship.jumping ){
 	     ship.ySpeed += 10;
-	     ship.jump--;
+	     ship.jumping--;
 	   }else{
 	     ship.ySpeed += 0.5f;	     
 	   }

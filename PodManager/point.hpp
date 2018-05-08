@@ -524,8 +524,19 @@ public:
   uint16_t maxCharge, maxShield;
   Fixed acceleration;
   uint16_t chargeSpeed, shieldRegen;
-  uint8_t jump, maxJump;
+  uint8_t jumping, maxJump;
   uint8_t points;
+
+  void boost(){
+    speed += acceleration;
+    charge -= BOOST_COST;    
+  }
+
+  void jump(){
+    jumping = maxJump;
+    charge -= JUMP_COST;
+  }
+
 } racers[3];
 
 class ShipUpgrades {
@@ -544,7 +555,7 @@ public:
     sc.shield = sc.maxShield = shield*5;
     sc.shieldRegen = dshield;
 
-    sc.jump = 0;
+    sc.jumping = 0;
     sc.maxJump = jump;
 
     sc.points = 0;
