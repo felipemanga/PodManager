@@ -387,7 +387,7 @@ public:
   Matrix transform;
   UpdateNode update;
 
-  int8_t flags;
+  int8_t flags, id;
   int8_t screenX, screenY;
 
   void init( cPoint3Dp mesh, uint8_t vc ){
@@ -438,6 +438,7 @@ public:
     
     Node &node = nodeList[usedNodeCount];
     node.init( mesh, pc );
+    node.id = usedNodeCount;
     
     for( uint8_t v=0; v<pc; v++ ){
       auto &zbi = zBuffer[usedPointCount++];
@@ -471,7 +472,6 @@ public:
 
     }
 
-    cPoint3Dp prevptr = nullptr;
     Fixed prevZ;
     uint8_t prevI;
 
@@ -535,6 +535,20 @@ public:
   void jump(){
     jumping = maxJump;
     charge -= JUMP_COST;
+  }
+
+  int8_t collides( ShipCalc &other, uint8_t radius ){
+    uint8_t dp = other.position.getInteger() - (position.getInteger()-(radius/2));
+    uint8_t ret = 1;
+    if( dp > 128 ){
+      dp = 128 - dp;
+      ret = -1;
+    }
+    
+    if( dp < radius )
+      return ret;
+    
+    return 0;
   }
 
 } racers[3];

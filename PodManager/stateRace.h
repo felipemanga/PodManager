@@ -71,14 +71,13 @@ STATE( RaceMode,
 	   *boostRow++ |= c;
 	   c ^= 0x3;
 	 }
-	 
 
 	 while( iv-- )
 	   *boostRow++ &= 0xF0;
 	 
        }
 
-       void updatePhysics( Node &racer );
+       bool updatePhysics( Node &racer );
        
        void updateAI( Node &racer ){
 	 auto &ship = racers[ racer.flags ];
@@ -88,7 +87,12 @@ STATE( RaceMode,
 	 }
 
 	 
-	 updatePhysics( racer );
+	 bool shouldJump = updatePhysics( racer ) && !ship.jumping;
+
+	 if( shouldJump && ship.charge >= JUMP_COST && (rand()&0xFF) < 30 ){
+	   ship.jump();
+	 }
+
        }
 
        void updatePlayer( Node &player ){
@@ -104,7 +108,7 @@ STATE( RaceMode,
 	 
        }
 
-       void updatePhysics( Node &node ){
+       bool updatePhysics( Node &node ){
 	 auto &ship = racers[ node.flags ];
 	 
 	 if( !scope.tick ){	   
@@ -117,7 +121,7 @@ STATE( RaceMode,
 	     ship.ySpeed += 10;
 	     ship.jumping--;
 	   }else{
-	     ship.ySpeed += 0.5f;	     
+	     ship.ySpeed += 0.75f;	     
 	   }
 	   
 	 }else
@@ -127,10 +131,44 @@ STATE( RaceMode,
 	 node.y += ship.ySpeed;
 	 
 	 ship.position -= ship.speed;
+	 
+	 if( node.y > 10 )
+	   ship.position -= ship.speed;
+	 
 	 node.rotY = ship.position.getInteger()-64;
 
 	 node.x = SINfp( ship.position.getInteger() ) * 256;
 	 node.z = COSfp( ship.position.getInteger() ) * 256;
+
+	 bool shouldJump = false;
+
+	 for( uint8_t i=0; i<scope.scene.usedNodeCount; ++i ){
+	   if( i == node.id )
+	     continue;
+	   
+	   auto &other = scope.scene.nodeList[i];
+	   auto &otherShip = racers[other.flags];
+
+	   if( !shouldJump && ship.collides(otherShip, 60) )
+	     shouldJump = true;
+
+	   auto collision = ship.collides(otherShip, 30);
+	   if( !collision )
+	     continue;
+	   
+	   auto dy = node.y - other.y;
+	   dy = dy*dy;
+	   if( dy > 200 )
+	     continue;
+
+	   auto ds = (ship.speed - otherShip.speed) / 2;
+	   ds *= collision;
+	   ship.speed -= ds;
+	   otherShip.speed += ds;
+	   
+	 }
+
+	 return shouldJump;
 	 
        }
        
