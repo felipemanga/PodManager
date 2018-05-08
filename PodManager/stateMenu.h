@@ -63,7 +63,7 @@ STATE( MenuMode,
 	   uint16_t cost = part2*10+40;
 	   uint16_t sell = part2*7+30;
 
-	   if( justPressed(UP_BUTTON) && playerMoney > cost ){
+	   if( justPressed(UP_BUTTON) && playerMoney >= cost ){
 	     playerMoney -= cost;
 	     part++;
 	   }else if( justPressed(DOWN_BUTTON) ){

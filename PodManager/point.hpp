@@ -380,19 +380,21 @@ typedef void (*UpdateNode)( Node & );
 
 class Node {
 public:
-  Fixed x, y, z;
+  Fixed x, y, z, scale;
   uint8_t rotX, rotY, rotZ;
   uint8_t vertexCount;
   cPoint3Dp mesh;
   Matrix transform;
   UpdateNode update;
 
-  int8_t flags, id;
+  int8_t flags, id, visible;
   int8_t screenX, screenY;
 
   void init( cPoint3Dp mesh, uint8_t vc ){
 
     x=0;   y=0;  z=0;
+    scale = 1;
+    visible = 1;
     rotX=0; rotY=0; rotZ=0;
     update = NULL;
     vertexCount = vc;
@@ -460,6 +462,9 @@ public:
       if( node.update )
 	node.update( node );
 
+      if( !node.visible )
+	continue;
+
       Matrix &mat = node.transform;
       mat = camera;
       mat.translate( node.x, node.y, node.z );
@@ -487,6 +492,9 @@ public:
 	   
       tmp.load( node.mesh[ zbi.pointId ] );
 
+      tmp.x *= node.scale;
+      tmp.y *= node.scale;
+      tmp.z *= node.scale;
       tmp *= node.transform;
       
       node.screenX = tmp.x.getInteger();
@@ -511,7 +519,8 @@ public:
 
 };
 
-typedef Scene<40,3> Scene36_3;
+
+typedef Scene<50,3> Scene36_3;
 
 const uint8_t JUMP_COST = 12;
 const uint8_t BOOST_COST = 20;
@@ -525,7 +534,11 @@ public:
   Fixed acceleration;
   uint16_t chargeSpeed, shieldRegen;
   uint8_t jumping, maxJump;
-  uint8_t points;
+  uint8_t laps, dead;
+  
+  void die(){
+    dead = 0x7F;
+  }
 
   void boost(){
     speed += acceleration;
@@ -558,21 +571,23 @@ public:
   uint8_t dspeed, jump, charge, dcharge, shield, dshield;
   
   void apply( ShipCalc &sc ){
-    sc.acceleration = Fixed::fromInternal(dspeed)*100;
-    sc.speed = 1;
+    sc.dead = 0;
+
+    sc.acceleration = Fixed::fromInternal(dspeed)*300;
+    sc.speed = 0;
     sc.ySpeed = 0;
 
     sc.charge = 0;
     sc.maxCharge = charge*20;
     sc.chargeSpeed = dcharge;
 
-    sc.shield = sc.maxShield = shield*5;
-    sc.shieldRegen = dshield;
+    sc.shield = sc.maxShield = shield*500;
+    sc.shieldRegen = dshield*10;
 
     sc.jumping = 0;
     sc.maxJump = jump;
 
-    sc.points = 0;
+    sc.laps = 0;
   }
   
 };
@@ -584,7 +599,8 @@ const ShipUpgrades opponents[] PROGMEM = {
   {2, 1, 1,1, 3,1},
   {2, 3, 1,1, 2,2},
   {1, 1, 3,1, 2,1},
-  {4, 1, 1,1, 1,1}
+  {4, 1, 1,1, 1,1},
+  {10,10,100,10,99,99}
 };
 
 ShipUpgrades playerUpgrades = {

@@ -3,6 +3,7 @@ STATE( RaceMode,
        {
 	 Scene36_3 scene;
 	 uint8_t tick;
+	 uint8_t liveCount;
        },
        
        {
@@ -10,10 +11,11 @@ STATE( RaceMode,
 	 scope.scene.init();
 	 scope.scene.camera.setRotationX( -15 ).translate( 0, -60, 325 );
 	 scope.tick = 0;
-
+	 
 	 ShipUpgrades tmp;
 	 ShipUpgrades *sup;
-	 const uint8_t racerCount = 3-(raceCount&1);
+	 const uint8_t racerCount = 3-(winCount&1);
+	 scope.liveCount = racerCount;
 	 for( uint8_t i=0; i<racerCount; ++i ){
 	   
 	   Node &node = scope.scene.initNode(
@@ -27,7 +29,7 @@ STATE( RaceMode,
 	     sup = &playerUpgrades;
 	   }else{
 	     node.update = updateAI;
-	     pgm_read_struct( &tmp, &opponents[raceCount+i] );
+	     pgm_read_struct( &tmp, &opponents[min(raceCount+i,7)] );
 	     sup = &tmp;
 	   }
 
@@ -35,7 +37,7 @@ STATE( RaceMode,
 	   racers[i].position = i*(256/racerCount);
 	   
 	 }	 
-
+ 
 	 clearScreen = CLEAR_NONE;
 	 playChiptune([](uint16_t t){
 	     return (t>>4)|(t>>8)|(t>>12);
@@ -44,6 +46,9 @@ STATE( RaceMode,
        },
        
        {
+	 if( scope.liveCount <= 1 )
+	   changeState( State::AfterRace, 0xFF );
+	 
 	 if( !scope.tick )
 	   scope.tick = 11;
 	 scope.tick--;
@@ -76,8 +81,22 @@ STATE( RaceMode,
 	   *boostRow++ &= 0xF0;
 	 
        }
-
+       
        bool updatePhysics( Node &racer );
+      
+       void updateDead( Node &racer ){
+	 auto &ship = racers[ racer.flags ];
+	 ship.dead--;
+	 if( !ship.dead ){
+	   racer.update = NULL;
+	   ship.dead = 1;
+	   racer.visible = 0;
+	   scope.liveCount--;
+	 }else{
+	   racer.scale *= Fixed(1.25f);
+	   racer.y = Fixed::fromInternal(SIN(ship.dead))*10;
+	 }
+       }
        
        void updateAI( Node &racer ){
 	 auto &ship = racers[ racer.flags ];
@@ -113,6 +132,8 @@ STATE( RaceMode,
 	 
 	 if( !scope.tick ){	   
 	   ship.charge = min( ship.charge+ship.chargeSpeed, ship.maxCharge );
+	   ship.speed *= Fixed(0.98f);
+	   ship.shield = min( ship.shield+ship.shieldRegen, ship.maxShield );
 	 }
 	   
 	 if( node.y <= 0 || ship.jumping ){
@@ -121,19 +142,22 @@ STATE( RaceMode,
 	     ship.ySpeed += 10;
 	     ship.jumping--;
 	   }else{
-	     ship.ySpeed += 0.75f;	     
+	     ship.ySpeed += Fixed(0.75f);
 	   }
 	   
 	 }else
-	   ship.ySpeed -= 0.5;
+	   ship.ySpeed -= Fixed(0.5f);
 
-	 ship.ySpeed *= 0.93f;
+	 ship.ySpeed *= Fixed(0.93f);
 	 node.y += ship.ySpeed;
+
+	 if( ship.position < ship.speed )
+	   ship.laps++;
 	 
 	 ship.position -= ship.speed;
 	 
 	 if( node.y > 10 )
-	   ship.position -= ship.speed;
+	   ship.position -= 2;
 	 
 	 node.rotY = ship.position.getInteger()-64;
 
@@ -149,6 +173,9 @@ STATE( RaceMode,
 	   auto &other = scope.scene.nodeList[i];
 	   auto &otherShip = racers[other.flags];
 
+	   if( otherShip.dead )
+	     continue;
+	   
 	   if( !shouldJump && ship.collides(otherShip, 60) )
 	     shouldJump = true;
 
@@ -161,10 +188,23 @@ STATE( RaceMode,
 	   if( dy > 200 )
 	     continue;
 
-	   auto ds = (ship.speed - otherShip.speed) / 2;
-	   ds *= collision;
-	   ship.speed -= ds;
-	   otherShip.speed += ds;
+	   int16_t ds = ((ship.speed - otherShip.speed) * Fixed(0.5f) * collision).getInteger();
+	   ship.speed -= ds << 2;
+	   otherShip.speed += ds << 2;
+
+	   ds = ds>>8;
+	   
+	   if( ship.shield < ds ){
+	     ship.die();
+	     node.update = updateDead;
+	   }else
+	     ship.shield -= ds;
+	   
+	   if( otherShip.shield < ds ){
+	     otherShip.die();
+	     other.update = updateDead;
+	   }else
+	     otherShip.shield -= ds;
 	   
 	 }
 

@@ -22,3 +22,6 @@ const char * const optionLabels[] PROGMEM = {
 
 const char txtUpCost[] PROGMEM = "Up: ";
 const char txtDownCost[] PROGMEM = "Sell: ";
+
+const char txtFirstPlace[] PROGMEM = "YOU WON!";
+const char txtOtherPlace[] PROGMEM = "YOU LOST!";
