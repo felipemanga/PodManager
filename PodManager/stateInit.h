@@ -1,27 +1,28 @@
 STATE( Init,
        {
-	 Actor title;
+	 Scene36_3 scene;
        },
        {
 	 playChiptune([](uint16_t t){
 	     return t>>5|t>>6|t>>1;
 	   });
 	   
-	 clearScreen = CLEAR_WHITE;
+	 clearScreen = CLEAR_BLACK;
 
-	 scope.title
-	   .init()
-	   .setPosition( 0, 64 )
-	   // .setAnimation( &titleAnim )
-	   .moveTo(0, 0)
-	   .setTweenWeight(2)
-	   .show()
-	   .flags |= ANIM_INVERT;
+	 scope.scene.init();
+	 scope.scene.camera.setRotation( 12, 0, -10 ).translate( 0, -50, -50 );
 
-	  
+	 for( int i=0; i<3; ++i ){
+	   Node &node = scope.scene.initNode(
+					     mesh,
+					     sizeof(mesh)/sizeof(mesh[0])
+					     );
+	   node.z = i*256;
+	   node.x = random( long(-100), long(100) );
+	 }
        },
+       
        {
-	 state = State::RenderMode;
 	  
 	 if( justPressed(A_BUTTON) ){
 	   changeState( State::RenderMode, 0xAA );
@@ -31,7 +32,20 @@ STATE( Init,
 	   Arduboy2Audio::toggle();
 	   Arduboy2Audio::saveOnOff();
 	 }	   
-    
+
+	 for( int i=0; i<3; ++i ){
+	   Node &node = scope.scene.nodeList[i];
+	   node.z += 24;
+	   if( node.z > 1024 ){
+	     node.z = 0;
+	     node.x = random( long(-100), long(100) );	     
+	   }
+	 }
+
+	 scope.scene.update();
+	 arduboy.drawCompressed( 0, 0, title_comp_w, WHITE );
+	 
        }
        
 )
+	   

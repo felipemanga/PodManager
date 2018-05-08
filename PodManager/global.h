@@ -1,10 +1,9 @@
 #include "music.h"
 
 #include "track.h"
+#include "title.h"
 
 /*
-#include "bmp/title.h"
-
 #include "bmp/tiles.h"
 
 #include "bmp/shot1.h"
