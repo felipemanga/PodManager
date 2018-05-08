@@ -3,41 +3,7 @@
 #include "track.h"
 #include "title.h"
 
-/*
-#include "bmp/tiles.h"
-
-#include "bmp/shot1.h"
-#include "bmp/shot2.h"
-
-struct {
-    AnimHeader header;
-    AnimFrameWB f;
-} const titleAnim PROGMEM = {
-    {
-	ANIM_WHITE,
-	1, 0
-    },
-    { title_comp_a }
-};
-
-
-struct {
-    AnimHeader header;
-    AnimFrameWXY f[2];
-} const shot PROGMEM = {
-    {
-	ANIM_WHITE |
-	ANIM_INVERT |
-	ANIM_OFFSET,
-	1, 0,
-	8, 8
-    },
-    {
-//	{ shot1_comp_a, -4, -4 },
-	{ shot2_comp_a, -4, -4 }
-    }
-};
-*/
+#include "en.h"
 
 uint16_t seed, seedSequence;
 

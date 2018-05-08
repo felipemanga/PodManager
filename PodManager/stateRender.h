@@ -25,7 +25,7 @@ STATE( RenderMode,
 	 memcpy_P( arduboy.sBuffer, track_bitmap+2, 128*64/8 );
 
 	 if( justPressed(A_BUTTON) )
-	   changeState( State::RaceMode, 0xAA );
+	   state = State::MenuMode;
 
 	 scope.scene.nodeList[0].y = Fixed::fromInternal(SIN( arduboy.frameCount ))*3;
 	 scope.scene.update();

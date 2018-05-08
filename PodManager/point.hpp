@@ -335,9 +335,9 @@ const Point3D hero_mesh[] PROGMEM = {
   { 16, 0, 9, 0x1, 10},
   {-16, 0, 9, 0x1, 10},
   
-  { 5, 2, 28, 0x01, 6},
+  { 5, 2, 28, 0x01, 4},
   { 0, 2, 28, 0x01, 6},
-  {-5, 2, 28, 0x01, 6}
+  {-5, 2, 28, 0x01, 4}
 };
 
 const Point3D mesh[] PROGMEM = {
@@ -387,7 +387,7 @@ public:
   Matrix transform;
   UpdateNode update;
 
-  int8_t sx, sy, sz, flags;
+  int8_t flags;
   int8_t screenX, screenY;
 
   void init( cPoint3Dp mesh, uint8_t vc ){
@@ -513,10 +513,58 @@ public:
 
 typedef Scene<40,3> Scene36_3;
 
+const uint8_t JUMP_COST = 12;
+const uint8_t BOOST_COST = 20;
 
-class ShipData {
-  char name[10];
-  UFixed<8,8> speed, charge, shield;
-  UFixed<8,8> maxSpeed, maxCharge, maxShield;
-  UFixed<8,8> acceleration, chargeSpeed, shieldRegen;
+
+class ShipCalc {
+public:
+  Fixed position, speed, ySpeed;
+  uint16_t charge, shield;
+  uint16_t maxCharge, maxShield;
+  Fixed acceleration;
+  uint16_t chargeSpeed, shieldRegen;
+  uint8_t jump, maxJump;
+  uint8_t points;
+} racers[3];
+
+class ShipUpgrades {
+public:
+  uint8_t dspeed, jump, charge, dcharge, shield, dshield;
+  
+  void apply( ShipCalc &sc ){
+    sc.acceleration = Fixed::fromInternal(dspeed)*100;
+    sc.speed = 1;
+    sc.ySpeed = 0;
+
+    sc.charge = 0;
+    sc.maxCharge = charge*20;
+    sc.chargeSpeed = dcharge;
+
+    sc.shield = sc.maxShield = shield*5;
+    sc.shieldRegen = dshield;
+
+    sc.jump = 0;
+    sc.maxJump = jump;
+
+    sc.points = 0;
+  }
+  
 };
+
+const ShipUpgrades opponents[] PROGMEM = {
+  {2, 1, 1,1, 1,1},
+  {1, 2, 2,1, 1,1},
+  {1, 1, 2,1, 1,1},
+  {2, 1, 1,1, 3,1},
+  {2, 3, 1,1, 2,2},
+  {1, 1, 3,1, 2,1},
+  {4, 1, 1,1, 1,1}
+};
+
+ShipUpgrades playerUpgrades = {
+  1,1, 1,1, 1,1
+};
+
+uint32_t playerMoney = 100;
+uint16_t raceCount, winCount, loseCount;

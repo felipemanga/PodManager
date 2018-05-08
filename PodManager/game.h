@@ -1,5 +1,9 @@
 typedef void (*StateRef)();
 
+constexpr __FlashStringHelper const *fstr( char const *c ){
+  return reinterpret_cast<__FlashStringHelper const *>(c);
+}
+
 uint8_t previousButtonState, currentButtonState, _justPressed;
 #define justPressed( x ) (_justPressed&(x))
 #define isPressed( x ) (currentButtonState&(x))
@@ -595,8 +599,8 @@ void tick(){
 
     // flushDrawQueue();
 
-    arduboy.setCursor(0,0);
-    arduboy.print( arduboy.cpuLoad() );
+    //arduboy.setCursor(0,0);
+    //arduboy.print( arduboy.cpuLoad() );
   
     arduboy.display();
 
