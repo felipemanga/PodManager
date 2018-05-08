@@ -3,6 +3,7 @@ STATE( RaceMode,
        {
 	 Scene36_3 scene;
 	 uint8_t tick;
+	 uint8_t slowTick;
 	 uint8_t liveCount;
        },
        
@@ -11,6 +12,7 @@ STATE( RaceMode,
 	 scope.scene.init();
 	 scope.scene.camera.setRotationX( -15 ).translate( 0, -60, 325 );
 	 scope.tick = 0;
+	 scope.slowTick = 0;
 	 
 	 ShipUpgrades tmp;
 	 ShipUpgrades *sup;
@@ -34,7 +36,7 @@ STATE( RaceMode,
 	   }
 
 	   sup->apply( racers[i] );
-	   racers[i].position = i*(256/racerCount);
+	   racers[i].startPosition = racers[i].position = -i*(256/racerCount);
 	   
 	 }	 
  
@@ -52,6 +54,9 @@ STATE( RaceMode,
 	 if( !scope.tick )
 	   scope.tick = 11;
 	 scope.tick--;
+	 if( !scope.slowTick )
+	   scope.slowTick = 60;
+	 scope.slowTick--;
 
 	 // arduboy.drawBitmap( 0, 0, track_bitmap+2, 128, 64 );
 	 memcpy_P( arduboy.sBuffer, track_bitmap+2, 128*64/8 );
@@ -79,6 +84,14 @@ STATE( RaceMode,
 
 	 while( iv-- )
 	   *boostRow++ &= 0xF0;
+
+	 for( uint8_t i=0; i<scope.scene.usedNodeCount; ++i ){
+	   auto &ship = racers[i];
+	   if( ship.position > 256*5 ){
+	     changeState( State::AfterRace, 0xFF );
+	     return;
+	   }
+	 }
 	 
        }
        
@@ -133,6 +146,9 @@ STATE( RaceMode,
 	 if( !scope.tick ){	   
 	   ship.charge = min( ship.charge+ship.chargeSpeed, ship.maxCharge );
 	   ship.speed *= Fixed(0.98f);
+	 }
+
+	 if( !scope.slowTick ){
 	   ship.shield = min( ship.shield+ship.shieldRegen, ship.maxShield );
 	 }
 	   
@@ -151,9 +167,6 @@ STATE( RaceMode,
 	 ship.ySpeed *= Fixed(0.93f);
 	 node.y += ship.ySpeed;
 
-	 if( ship.position < ship.speed )
-	   ship.laps++;
-	 
 	 ship.position -= ship.speed;
 	 
 	 if( node.y > 10 )
@@ -176,23 +189,24 @@ STATE( RaceMode,
 	   if( otherShip.dead )
 	     continue;
 	   
-	   if( !shouldJump && ship.collides(otherShip, 60) )
+	   if( !shouldJump && ship.collides(otherShip, 60, false) )
 	     shouldJump = true;
 
-	   auto collision = ship.collides(otherShip, 30);
+	   auto dy = node.y - other.y;
+	   if( dy > 10 || dy < -10 )
+	     continue;
+
+	   auto collision = ship.collides(otherShip, 10, true);
 	   if( !collision )
 	     continue;
-	   
-	   auto dy = node.y - other.y;
-	   dy = dy*dy;
-	   if( dy > 200 )
-	     continue;
 
-	   int16_t ds = ((ship.speed - otherShip.speed) * Fixed(0.5f) * collision).getInteger();
-	   ship.speed -= ds << 2;
-	   otherShip.speed += ds << 2;
+	   Fixed fds = (ship.speed - otherShip.speed) * collision * Fixed(0.5f);
+	   ship.speed -= fds;
+	   otherShip.speed += fds;
 
-	   ds = ds>>8;
+	   auto ds = (fds*10).getInteger();
+	   if( ds < 0 )
+	     ds = -ds;
 	   
 	   if( ship.shield < ds ){
 	     ship.die();

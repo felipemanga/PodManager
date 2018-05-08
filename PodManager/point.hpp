@@ -528,7 +528,7 @@ const uint8_t BOOST_COST = 20;
 
 class ShipCalc {
 public:
-  Fixed position, speed, ySpeed;
+  Fixed position, startPosition, speed, ySpeed;
   uint16_t charge, shield;
   uint16_t maxCharge, maxShield;
   Fixed acceleration;
@@ -550,16 +550,28 @@ public:
     charge -= JUMP_COST;
   }
 
-  int8_t collides( ShipCalc &other, uint8_t radius ){
-    uint8_t dp = other.position.getInteger() - (position.getInteger()-(radius/2));
+  int8_t collides( ShipCalc &other, uint8_t radius, bool adjust ){
+    int16_t a = uint8_t(other.position.getInteger());
+    int16_t b = uint8_t(position.getInteger());
     uint8_t ret = 1;
-    if( dp > 128 ){
-      dp = 128 - dp;
-      ret = -1;
+    int16_t delta = a - b;
+
+    if( delta > 128 )
+      delta = 256-delta;
+    if( delta < -128 )
+      delta = -256+delta;
+
+    int16_t adelta = delta;
+    if( delta < 0 )
+      adelta = -adelta;
+
+    if( adelta < radius ){
+      if( adjust ){
+	position -= delta;
+	other.position += delta;
+      }
+      return delta < 0 ? 1 : -1;
     }
-    
-    if( dp < radius )
-      return ret;
     
     return 0;
   }
@@ -581,8 +593,8 @@ public:
     sc.maxCharge = charge*20;
     sc.chargeSpeed = dcharge;
 
-    sc.shield = sc.maxShield = shield*500;
-    sc.shieldRegen = dshield*10;
+    sc.shield = sc.maxShield = shield*5;
+    sc.shieldRegen = dshield;
 
     sc.jumping = 0;
     sc.maxJump = jump;

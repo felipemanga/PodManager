@@ -18,7 +18,7 @@ STATE( AfterRace,
 
 	 for( int i=0; i<scope.racerCount; ++i ){
 	   int place = 0;
-	   auto laps = racers[i].laps+1;
+	   auto laps = -(racers[i].position - racers[i].startPosition);
 	   if( racers[i].dead )
 	     laps--;
 
@@ -26,7 +26,7 @@ STATE( AfterRace,
 	     if( j==i )
 	       continue;
 	     
-	     auto olaps = racers[j].laps+1;
+	     auto olaps = -(racers[j].position - racers[j].startPosition);
 	     if( racers[j].dead )
 	       olaps--;
 	     
@@ -39,11 +39,11 @@ STATE( AfterRace,
 	     if( place == 0 ){
 	       scope.msg = txtFirstPlace;
 	       winCount++;
-	       playerMoney += raceCount*raceCount*7+3;
+	       playerMoney += (3+winCount*winCount)*7;
 	     }else{
 	       scope.msg = txtOtherPlace;
 	       loseCount++;
-	       playerMoney += raceCount*2+1;
+	       playerMoney += (winCount+1)*2+1;
 	     }
 	   }
 

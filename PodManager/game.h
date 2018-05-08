@@ -577,7 +577,7 @@ const StateRef stateInit[] PROGMEM = {
 #undef STATE
 
 void tick(){
-    if (!(arduboy.nextFrameDEV()))
+    if (!(arduboy.nextFrame()))
 	return;
 
     pollButtons();
