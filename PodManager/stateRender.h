@@ -7,7 +7,7 @@ STATE( RenderMode,
        {
 
 	 scope.scene.init();
-	 scope.scene.camera.setRotationX( -15 ).translate( 0, -30, 60 );
+	 scope.scene.camera.setRotationX( -15 ).rotate(0,100,0).translate( -40, -30, -40 );
 
 	 Node &node = scope.scene.initNode(
 					   hero_mesh,
@@ -27,7 +27,7 @@ STATE( RenderMode,
 	 if( justPressed(A_BUTTON) )
 	   changeState( State::RaceMode, 0xAA );
 
-	 scope.scene.nodeList[0].rotY = COS( (arduboy.frameCount) ) >> 2;
+	 scope.scene.nodeList[0].y = Fixed::fromInternal(SIN( arduboy.frameCount ))*3;
 	 scope.scene.update();
 	 
        }
