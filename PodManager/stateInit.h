@@ -23,7 +23,7 @@ STATE( Init,
        },
        
        {
-	  
+   
 	 if( justPressed(A_BUTTON) )
 	   changeState( State::RenderMode, 0xAA );
 

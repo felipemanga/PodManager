@@ -604,6 +604,7 @@ public:
   
 };
 
+// dspeed, jump, charge, dcharge, shield, dshield;
 const ShipUpgrades opponents[] PROGMEM = {
   {2, 1, 1,1, 1,1},
   {1, 2, 2,1, 1,1},
@@ -611,8 +612,10 @@ const ShipUpgrades opponents[] PROGMEM = {
   {2, 1, 1,1, 3,1},
   {2, 3, 1,1, 2,2},
   {1, 1, 3,1, 2,1},
-  {4, 1, 1,1, 1,1},
-  {10,10,100,10,99,99}
+  {4, 1, 1,2, 1,1},
+  {4, 2, 1,1, 3,1},
+  {8, 4, 1,5, 1,1},
+  {4, 4, 2,6, 5,1}
 };
 
 ShipUpgrades playerUpgrades = {

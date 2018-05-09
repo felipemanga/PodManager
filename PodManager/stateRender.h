@@ -16,7 +16,7 @@ STATE( RenderMode,
 	   
 	 clearScreen = CLEAR_NONE;
 	 playChiptune([](uint16_t t){
-	     return (t>>4)|(t>>8)|(t>>12);
+	     return (t>>8)&~(t>>5|t>>6|t>>1);
 	   });
 	 	 
        },

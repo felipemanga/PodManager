@@ -31,7 +31,7 @@ STATE( RaceMode,
 	     sup = &playerUpgrades;
 	   }else{
 	     node.update = updateAI;
-	     pgm_read_struct( &tmp, &opponents[min(raceCount+i,7)] );
+	     pgm_read_struct( &tmp, &opponents[ min( raceCount+i, 8 ) ] );
 	     sup = &tmp;
 	   }
 
@@ -42,8 +42,8 @@ STATE( RaceMode,
  
 	 clearScreen = CLEAR_NONE;
 	 playChiptune([](uint16_t t){
-	     return (t>>4)|(t>>8)|(t>>12);
-	   });
+		 return (t>>5|t>>8|t>>2);
+	     });
 	 	 
        },
        

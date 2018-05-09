@@ -17,9 +17,6 @@ STATE( MenuMode,
 					   );
 	   
 	 clearScreen = CLEAR_BLACK;
-	 playChiptune([](uint16_t t){
-	     return (t>>8)&~(t>>5|t>>6|t>>1);
-	   });
 	 	 
        },
        
