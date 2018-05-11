@@ -40,7 +40,7 @@ STATE( RaceMode,
 	   
 	 }	 
  
-	 clearScreen = CLEAR_NONE;
+	 clearScreen = CLEAR_BLACK;
 	 playChiptune([](uint16_t t){
 		 return (t>>5|t>>8|t>>2);
 	     });
@@ -58,8 +58,8 @@ STATE( RaceMode,
 	   scope.slowTick = 60;
 	 scope.slowTick--;
 
-	 // arduboy.drawBitmap( 0, 0, track_bitmap+2, 128, 64 );
-	 memcpy_P( arduboy.sBuffer, track_bitmap+2, 128*64/8 );
+	 drawBackground();
+	 // memcpy_P( arduboy.sBuffer, track_bitmap+2, 128*64/8 );
 
 	 scope.scene.update();
 

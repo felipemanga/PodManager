@@ -1,6 +1,6 @@
 #include "music.h"
 
-#include "track.h"
+#include "bg.h"
 #include "title.h"
 
 #include "en.h"
@@ -183,3 +183,4 @@ void changeState( State ns, uint8_t tc ){
 }
 
 #include "point.hpp"
+#include "background.hpp"

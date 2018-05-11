@@ -25,7 +25,7 @@ STATE( Init,
        {
    
 	 if( justPressed(A_BUTTON) )
-	   changeState( State::RenderMode, 0xAA );
+	   changeState( State::PodSelect, 0xAA );
 
 	 if( justPressed(B_BUTTON) ){
 	   Arduboy2Audio::toggle();

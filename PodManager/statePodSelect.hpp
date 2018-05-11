@@ -1,4 +1,4 @@
-STATE( RenderMode,
+STATE( PodSelect,
        
        {
 	 Scene36_3 scene;
@@ -22,7 +22,8 @@ STATE( RenderMode,
        },
        
        {
-	 memcpy_P( arduboy.sBuffer, track_bitmap+2, 128*64/8 );
+	   drawBackground();
+	   // memcpy_P( arduboy.sBuffer, track_bitmap+2, 128*64/8 );
 
 	 if( justPressed(A_BUTTON) )
 	   state = State::MenuMode;

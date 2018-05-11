@@ -26,7 +26,7 @@ STATE( MenuMode,
 	 const auto maxOpt = sizeof(optionLabels)/sizeof(optionLabels[0]);
 
 	 if( justPressed(B_BUTTON) )
-	   state = State::RenderMode;
+	   state = State::PodSelect;
 
 	 if( justPressed(LEFT_BUTTON) ){
 	   if( !option ) option = maxOpt-1;
@@ -58,7 +58,7 @@ STATE( MenuMode,
 	   uint16_t part2 = part;
 	   part2 *= part2;
 	   uint16_t cost = part2*10+40;
-	   uint16_t sell = part2*7+30;
+	   uint16_t sell = (part-1)*(part-1)*7+30;
 
 	   if( justPressed(UP_BUTTON) && playerMoney >= cost ){
 	     playerMoney -= cost;

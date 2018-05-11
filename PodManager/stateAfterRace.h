@@ -65,7 +65,7 @@ STATE( AfterRace,
 	 arduboy.print( fstr(scope.msg) );
 	  
 	 if( justPressed(A_BUTTON) ){
-	   changeState( State::RenderMode, 0xAA );
+	   changeState( State::PodSelect, 0xAA );
 	 }
 	 
 	 for( int i=0; i<scope.racerCount; ++i )
