@@ -1,3 +1,4 @@
+/* */
 #include "FixedPoints/FixedPoints.h"
 
 template<>
@@ -15,6 +16,181 @@ SFixed<23,8> operator *(const SFixed<23,8> & left, const SFixed<23,8> & right)
 }
 
 typedef SFixed<23,8> Fixed;
+
+/*/
+
+class Fixed {
+public:
+
+    union {
+	uint32_t internal;
+	struct {
+	    int16_t integer;
+	    uint8_t fraction;
+	};
+    };
+
+    Fixed( void ) = default;
+    
+    Fixed( int i ){
+	integer = i;
+	fraction = 0;
+    }
+    
+    static Fixed fromInternal( uint32_t i ){
+	Fixed f;
+	f.internal = i;
+	return f;
+    }
+
+    Fixed operator -(){
+	Fixed ret;
+	ret.internal = -internal;
+	return ret;
+    }
+
+    int16_t getInteger(){
+	return internal;
+    }
+
+    Fixed &operator =( int v ){
+	integer = v;
+	fraction = 0;
+	return *this;
+    }
+
+    Fixed &operator =( float v ){
+	integer = v;
+	fraction = 255*(v-integer);
+	return *this;
+    }
+
+    Fixed &operator *=( const Fixed &right ){
+	union {
+	    uint64_t big;
+	    struct {
+		uint8_t pad;
+		Fixed fixed;
+	    } s;
+	} u;
+	u.big = internal;
+	u.big *= right.internal;
+	internal = u.s.fixed.internal;
+	return *this;
+    }
+
+    Fixed &operator +=( const Fixed &other ){
+	internal += other.internal;
+	return *this;
+    }
+
+    Fixed &operator -=( const Fixed &other ){
+	internal -= other.internal;
+	return *this;
+    }
+
+    Fixed &operator ++(){
+	integer++;
+	return *this;
+    }
+
+    Fixed &operator --(){
+	integer--;
+	return *this;
+    }
+    
+};
+
+bool operator > (const Fixed &left, const Fixed &right ){
+    return left.internal > right.internal;
+}
+
+bool operator < (const Fixed &left, const Fixed &right ){
+    return left.internal < right.internal;
+}
+
+bool operator <= (const Fixed &left, const Fixed &right ){
+    return left.internal <= right.internal;
+}
+
+bool operator <= (const Fixed &left, int right ){
+    Fixed fright;
+    fright.integer = right;
+    fright.fraction = 0;
+    return left <= fright;
+}
+
+bool operator == (const Fixed &left, const Fixed &right ){
+    return left.internal == right.internal;
+}
+
+Fixed operator + (const Fixed &left, const Fixed &right ){
+    Fixed ret;
+    ret.internal = left.internal + right.internal;
+    return ret;
+}
+
+Fixed operator - (const Fixed &left, const Fixed &right ){
+    Fixed ret;
+    ret.internal = left.internal - right.internal;
+    return ret;
+}
+
+Fixed operator * (const Fixed &left, const Fixed &right){
+    Fixed ret;
+    if( !left.internal || !right.internal ){
+	ret.internal = 0;
+	return 0;
+    }
+    union {
+	uint64_t big;
+	struct {
+	    uint8_t pad;
+	    Fixed fixed;
+	} s;
+    } u;
+    u.big = left.internal;
+    u.big *= right.internal;
+    ret.internal = u.s.fixed.internal;
+    return ret;
+}
+
+Fixed operator / (const Fixed &left, const Fixed &right){
+    union {
+	int64_t big;
+	Fixed fixed;
+	struct {
+	    uint8_t pad;
+	    Fixed high;
+	} s;
+    } u;
+    u.big = 0;
+    u.s.high.internal = left.internal;
+    u.big /= right.internal;
+    return u.fixed;
+}
+
+Fixed operator + (const Fixed &left, int16_t right){
+    Fixed ret;
+    ret.internal = left.internal;
+    ret.integer += right;
+    return ret;
+}
+
+Fixed operator - (const Fixed &left, int16_t right){
+    Fixed ret;
+    ret.internal = left.internal;
+    ret.integer -= right;
+    return ret;
+}
+
+Fixed operator * (const Fixed &left, int16_t right){
+    Fixed ret;
+    ret.internal = left.internal * right;
+    return ret;
+}
+
+/* */
 
 Fixed COSfp( Fixed a ){
   return Fixed::fromInternal( COS( a.getInteger() ) );
@@ -155,10 +331,10 @@ public:
     te[ 10 ] = a31 * s + a33 * c;
     te[ 14 ] = a34;
 
-    te[ 3 ] = a41 * c + a43 * -s;
-    te[ 7 ] = a42;
-    te[ 11 ] = a41 * s + a43 * c;
-    te[ 15 ] = a44;
+    // te[ 3 ] = a41 * c + a43 * -s;
+    // te[ 7 ] = a42;
+    // te[ 11 ] = a41 * s + a43 * c;
+    // te[ 15 ] = a44;
     
     
     return *this;
@@ -199,31 +375,31 @@ public:
     auto a11 = ae[ 0 ], a12 = ae[ 4 ], a13 = ae[ 8 ],  a14 = ae[ 12 ];
     auto a21 = ae[ 1 ], a22 = ae[ 5 ], a23 = ae[ 9 ],  a24 = ae[ 13 ];
     auto a31 = ae[ 2 ], a32 = ae[ 6 ], a33 = ae[ 10 ], a34 = ae[ 14 ];
-    auto a41 = ae[ 3 ], a42 = ae[ 7 ], a43 = ae[ 11 ], a44 = ae[ 15 ];
-    auto b11 = be[ 0 ], b12 = be[ 4 ], b13 = be[ 8 ],  b14 = be[ 12 ];
-    auto b21 = be[ 1 ], b22 = be[ 5 ], b23 = be[ 9 ],  b24 = be[ 13 ];
-    auto b31 = be[ 2 ], b32 = be[ 6 ], b33 = be[ 10 ], b34 = be[ 14 ];
-    auto b41 = be[ 3 ], b42 = be[ 7 ], b43 = be[ 11 ], b44 = be[ 15 ];
+    // auto a41 = ae[ 3 ], a42 = ae[ 7 ], a43 = ae[ 11 ], a44 = ae[ 15 ];
+    const auto &b11 = be[ 0 ], &b12 = be[ 4 ], &b13 = be[ 8 ],  &b14 = be[ 12 ];
+    const auto &b21 = be[ 1 ], &b22 = be[ 5 ], &b23 = be[ 9 ],  &b24 = be[ 13 ];
+    const auto &b31 = be[ 2 ], &b32 = be[ 6 ], &b33 = be[ 10 ], &b34 = be[ 14 ];
+    // const auto &b41 = be[ 3 ], &b42 = be[ 7 ], &b43 = be[ 11 ], &b44 = be[ 15 ];
 
-    te[ 0 ] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
-    te[ 4 ] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
-    te[ 8 ] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
-    te[ 12 ] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
+    te[ 0 ] = a11 * b11 + a12 * b21 + a13 * b31 /* + a14 * b41 */;
+    te[ 4 ] = a11 * b12 + a12 * b22 + a13 * b32 /* + a14 * b42 */;
+    te[ 8 ] = a11 * b13 + a12 * b23 + a13 * b33 /* + a14 * b43 */;
+    te[ 12 ] = a11 * b14 + a12 * b24 + a13 * b34 + a14;// * b44;
 
-    te[ 1 ] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
-    te[ 5 ] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
-    te[ 9 ] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
-    te[ 13 ] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+    te[ 1 ] = a21 * b11 + a22 * b21 + a23 * b31 /* + a24 * b41 */;
+    te[ 5 ] = a21 * b12 + a22 * b22 + a23 * b32 /* + a24 * b42 */;
+    te[ 9 ] = a21 * b13 + a22 * b23 + a23 * b33 /* + a24 * b43 */;
+    te[ 13 ] = a21 * b14 + a22 * b24 + a23 * b34 + a24;// * b44;
 
-    te[ 2 ] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
-    te[ 6 ] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
-    te[ 10 ] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
-    te[ 14 ] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
+    te[ 2 ] = a31 * b11 + a32 * b21 + a33 * b31 /* + a34 * b41 */;
+    te[ 6 ] = a31 * b12 + a32 * b22 + a33 * b32 /* + a34 * b42 */;
+    te[ 10 ] = a31 * b13 + a32 * b23 + a33 * b33 /* + a34 * b43 */;
+    te[ 14 ] = a31 * b14 + a32 * b24 + a33 * b34 + a34;// * b44;
 
-    te[ 3 ] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
-    te[ 7 ] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
-    te[ 11 ] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
-    te[ 15 ] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+    te[ 3 ] = 0 /* a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41 */;
+    te[ 7 ] = 0 /* a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42 */;
+    te[ 11 ] = 0 /* a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43 */;
+    te[ 15 ] = 1; // a41 * b14 + a42 * b24 + a43 * b34 + Fixed(1); // a44 * b44;
     
     return *this;
   }
@@ -256,11 +432,11 @@ public:
   Point3D &operator *=( const Matrix &mat ){
 
     auto &e = mat.a;
-    Fixed x = this->x, y = this->y, z = this->z, w = 1; // this->w;
+    Fixed x = this->x, y = this->y, z = this->z; // , w = this->w;
 
-    this->x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] * w;
-    this->y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] * w;
-    this->z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] * w;
+    this->x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ]; // * w;
+    this->y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ]; // * w;
+    this->z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ]; // * w;
     // this->w = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] * w;
 
     return *this;
@@ -268,10 +444,11 @@ public:
 
   void render( bool square ){
 
-    Fixed fovz = 64 + z;
-    int16_t x = ((64 * this->x) / fovz + 64).getInteger();
-    int16_t y = (32 - (64 * this->y) / fovz).getInteger();	   
-    auto size = ((64 * this->size) / fovz).getInteger();
+    Fixed fovz = 64 / (64 + z);
+      
+    int16_t x = (this->x * fovz + 64).getInteger();
+    int16_t y = (32 - this->y * fovz).getInteger();	   
+    auto size = (this->size * fovz).getInteger();
     auto hsize = size>>1;
     auto sx = x - hsize;
     auto sy = y - hsize;
@@ -491,10 +668,13 @@ public:
       Point3D tmp;
 	   
       tmp.load( node.mesh[ zbi.pointId ] );
-
-      tmp.x *= node.scale;
-      tmp.y *= node.scale;
-      tmp.z *= node.scale;
+      
+      if( node.scale != 1 ){
+	  tmp.x *= node.scale;
+	  tmp.y *= node.scale;
+	  tmp.z *= node.scale;
+      }
+      
       tmp *= node.transform;
       
       node.screenX = tmp.x.getInteger();

@@ -306,8 +306,20 @@ LOGIC_OPERATORS( >= )
 
 ARITHMETIC_OPERATORS( + )
 ARITHMETIC_OPERATORS( - )
-ARITHMETIC_OPERATORS( * )
+// ARITHMETIC_OPERATORS( * ) // Edited by FManga
 ARITHMETIC_OPERATORS( / )
+
+// Edited by FManga
+template< unsigned Integer, unsigned Fraction, typename type >
+    constexpr SFixed<Integer, Fraction> operator * (const SFixed<Integer, Fraction> & left, const type & right)
+{
+    return SFixed<Integer, Fraction>::fromInternal(left.getInternal() * right);
+}
+template< unsigned Integer, unsigned Fraction, typename type >
+    constexpr SFixed<Integer, Fraction> operator * (const type & left, const SFixed<Integer, Fraction> & right)
+{
+    return SFixed<Integer, Fraction>::fromInternal(left * right.getInternal());
+}
 
 // Prevent Macro-bleed:
 

@@ -17,6 +17,8 @@ FIXED_POINTS_BEGIN_NAMESPACE
 //
 // Constructors
 //
+
+// Edited by FManga
 /*
 template< unsigned Integer, unsigned Fraction >
 constexpr SFixed<Integer, Fraction>::SFixed(void)

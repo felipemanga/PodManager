@@ -43,7 +43,7 @@ namespace FIXED_POINTS_DETAILS
 	protected:
 		InternalType value;
 
-		constexpr SFixedBase(void) = default;
+		constexpr SFixedBase(void) = default; // Edited by FManga
 		constexpr SFixedBase(const RawType & value) : value(static_cast<InternalType>(value)) {}
 		
 	public:

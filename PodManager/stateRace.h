@@ -121,7 +121,7 @@ STATE( RaceMode,
 	 
 	 bool shouldJump = updatePhysics( racer ) && !ship.jumping;
 
-	 if( shouldJump && ship.charge >= JUMP_COST && (rand()&0xFF) < 30 ){
+	 if( shouldJump && ship.charge >= JUMP_COST && random(int8_t(0), int8_t(0x7F)) < 20 ){
 	   ship.jump();
 	 }
 

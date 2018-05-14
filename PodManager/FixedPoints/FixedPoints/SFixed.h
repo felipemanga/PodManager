@@ -63,7 +63,7 @@ private:
 public:
 	using Base::Base;
 
-	constexpr SFixed(void) = default;
+	constexpr SFixed(void) = default; // Edited by FManga
 	constexpr SFixed(const IntegerType & integer);
 	constexpr SFixed(const IntegerType & integer, const FractionType & fraction);
 

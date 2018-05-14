@@ -6,6 +6,8 @@ STATE( Init,
 	 playChiptune([](uint16_t t){
 	     return t>>5|t>>6|t>>1;
 	   });
+
+	 seed = 3489;
 	   
 	 clearScreen = CLEAR_BLACK;
 
@@ -18,7 +20,7 @@ STATE( Init,
 					     sizeof(mesh)/sizeof(mesh[0])
 					     );
 	   node.z = i*256;
-	   node.x = random( long(-100), long(100) );
+	   node.x = (int16_t) random( int8_t(-100), int8_t(100) );
 	 }
        },
        
@@ -37,7 +39,7 @@ STATE( Init,
 	   node.z += 24;
 	   if( node.z > 1024 ){
 	     node.z = 0;
-	     node.x = random( long(-100), long(100) );	     
+	     node.x = (int16_t) random( int8_t(-100), int8_t(100) );	     
 	   }
 	 }
 
