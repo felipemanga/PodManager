@@ -16,7 +16,7 @@ STATE( Init,
 
 	 for( int i=0; i<3; ++i ){
 	   Node &node = scope.scene.initNode(
-					     mesh,
+					     player_mesh,
 					     sizeof(mesh)/sizeof(mesh[0])
 					     );
 	   node.z = i*256;
@@ -25,6 +25,8 @@ STATE( Init,
        },
        
        {
+
+	   state = State::RaceMode;
    
 	 if( justPressed(A_BUTTON) )
 	   changeState( State::PodSelect, 0xAA );

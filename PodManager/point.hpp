@@ -409,6 +409,11 @@ public:
 
 typedef Matrix4<Fixed> Matrix;
 
+const uint8_t FLAG_SQUARE=1;
+const uint8_t FLAG_HIDDEN=2;
+const uint8_t FLAG_UPPER=4;
+const uint8_t FLAG_EXPLODE=8;
+
 class Point3D {
 public:
   Fixed x, y, z;//, w;
@@ -442,7 +447,7 @@ public:
     return *this;
   }
 
-  void render( bool square ){
+  void render( uint8_t flags ){
 
     Fixed fovz = 64 / (64 + z);
       
@@ -462,11 +467,15 @@ public:
     if( sx>=ex || sy>=ey )
       return;
 
+    bool square = (size <= 4) || (flags & FLAG_SQUARE);
+
     if( square ){
        ey -= sy;     
        for( sx=0; sx<=hsize; ++sx ){
 	   arduboy.drawSymmetricVLine( x, -sx, sy, ey, color );
        }
+    }else if( flags & FLAG_UPPER ){
+	arduboy.fillHalfCircleUpper( x, y, hsize, this->color );
     }else{
 	arduboy.fillCircle( x, y, hsize, this->color );
     }
@@ -477,79 +486,6 @@ public:
 
 typedef Point3D *Point3Dp;
 typedef Point3D const *cPoint3Dp;
-
-const Point3D hero_mesh[] PROGMEM = {
-  { 4, 8, -47, 0xFF, 10},
-  { 0, 8, -45, 0xFF, 11},
-  {-4, 8, -47, 0xFF, 10},
-  { 0,11, -53, 0xFF, 10},
-
-  { 5, 8, -28, 0x01, 4},
-  {-5, 8, -28, 0x01, 4},
-
-  { 8, 4, -18, 0x01, 4},
-  {-8, 4, -18, 0x01, 4},
-
-  { 11, 2, -8, 0x01, 4},
-  {-11, 2, -8, 0x01, 4},
-  
-  { 16, 8, 40, 0xAA, 8},
-  { 24, -4, 40, 0xAA, 8},
-  {  8, -4, 40, 0xAA, 8},
-  {-16, 8, 40, 0xAA, 8},
-  {-24, -4, 40, 0xAA, 8},
-  { -8, -4, 40, 0xAA, 8},
-
-  { 16, 0, 33, 0xFF, 18},
-  {-16, 0, 33, 0xFF, 18},
-
-  { 16, 0, 27, 0xFF, 18},
-  {-16, 0, 27, 0xFF, 18},
-  
-  { 16, 0, 20, 0xFF, 18},
-  {-16, 0, 20, 0xFF, 18},
-  
-  { 16, 0, 9, 0x1, 10},
-  {-16, 0, 9, 0x1, 10},
-  
-  { 5, 2, 28, 0x01, 4},
-  { 0, 2, 28, 0x01, 6},
-  {-5, 2, 28, 0x01, 4}
-};
-
-const Point3D mesh[] PROGMEM = {
-  { 5,10, -37, 1, 14},
-  {-5, 8, -37, 1, 14},
-  { 0,12, -47, 1, 14},
-  
-  { 16,10, 35, 1, 24},
-  {-16, 0, 35, 1, 24},
-
-  { 16,10, 20, 1, 24},
-  {-16, 0, 20, 1, 24},
-  
-  { 16,10, 9, 0xFF, 15},
-  {-16, 0, 9, 0xFF, 15},
-  
-  {0, 5, 28, 0xFF, 12}
-};
-
-const Point3D player_mesh[] PROGMEM = {
-  { 5,10, -37, 0xFF, 14},
-  {-5, 8, -37, 0xFF, 14},
-  { 0,12, -47, 0xFF, 14},
-  
-  { 16,10, 35, 0xFF, 24},
-  {-16, 0, 35, 0xFF, 24},
-
-  { 16,10, 20, 0xFF, 24},
-  {-16, 0, 20, 0xFF, 24},
-  
-  { 16,10, 9, 0x1, 15},
-  {-16, 0, 9, 0x1, 15},
-  
-  {0, 5, 28, 0xFF, 12}
-};
 
 class Node;
 
@@ -564,14 +500,15 @@ public:
   Matrix transform;
   UpdateNode update;
 
-  int8_t flags, id, visible;
+  uint8_t data;
+  int8_t flags, id;
   int8_t screenX, screenY;
 
   void init( cPoint3Dp mesh, uint8_t vc ){
 
     x=0;   y=0;  z=0;
     scale = 1;
-    visible = 1;
+    flags = 0;
     rotX=0; rotY=0; rotZ=0;
     update = NULL;
     vertexCount = vc;
@@ -579,7 +516,7 @@ public:
     
   }
 
-  Node &setPosition( Fixed nx, Fixed ny, Fixed nz ){
+  Node &setPosition( const Fixed &nx, const Fixed &ny, const Fixed &nz ){
 
     x = nx; y = ny; z = nz;
     return *this;
@@ -618,6 +555,8 @@ public:
     Node &node = nodeList[usedNodeCount];
     node.init( mesh, pc );
     node.id = usedNodeCount;
+    node.data = 0;
+    node.flags = 0;
     
     for( uint8_t v=0; v<pc; v++ ){
       auto &zbi = zBuffer[usedPointCount++];
@@ -639,7 +578,7 @@ public:
       if( node.update )
 	node.update( node );
 
-      if( !node.visible )
+      if( node.flags & FLAG_HIDDEN )
 	continue;
 
       Matrix &mat = node.transform;
@@ -649,8 +588,8 @@ public:
       //if( !node.rotX && !node.rotZ && node.rotY )
       if( node.rotY )
 	  mat.rotateY( node.rotY );
-	  //else
-//	  mat.rotate( node.rotX, node.rotY, node.rotZ );
+      else if( node.rotZ )
+	  mat.rotate( node.rotX, node.rotY, node.rotZ );
 
     }
 
@@ -673,6 +612,8 @@ public:
 	  tmp.x *= node.scale;
 	  tmp.y *= node.scale;
 	  tmp.z *= node.scale;
+	  if( !(node.flags&FLAG_EXPLODE) )
+	      tmp.size = (tmp.size * node.scale).getInteger();
       }
       
       tmp *= node.transform;
@@ -689,7 +630,7 @@ public:
 	prevZ = tmp.z;
 	prevI = i;
 
-	tmp.render( tmp.z > 250 );
+	tmp.render( node.flags );
 	     
       }
 
@@ -700,7 +641,7 @@ public:
 };
 
 
-typedef Scene<50,3> Scene36_3;
+typedef Scene<50,6> Scene36_3;
 
 const uint8_t JUMP_COST = 12;
 const uint8_t BOOST_COST = 20;

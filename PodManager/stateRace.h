@@ -10,7 +10,7 @@ STATE( RaceMode,
        {
 
 	 scope.scene.init();
-	 scope.scene.camera.setRotationX( -15 ).translate( 0, -60, 325 );
+	 scope.scene.camera.setRotationX( -20 ).translate( 0, -70, 50 );
 	 scope.tick = 0;
 	 scope.slowTick = 0;
 	 
@@ -18,14 +18,15 @@ STATE( RaceMode,
 	 ShipUpgrades *sup;
 	 const uint8_t racerCount = 3-(winCount&1);
 	 scope.liveCount = racerCount;
-	 for( uint8_t i=0; i<racerCount; ++i ){
+	 uint8_t i;
+	 for( i=0; i<racerCount; ++i ){
 	   
 	   Node &node = scope.scene.initNode(
 					     i ? mesh : player_mesh,
 					     sizeof(mesh)/sizeof(mesh[0])
 					     );
 	   
-	   node.flags = i;
+	   node.data = i;
 	   if( i==0 ){
 	     node.update = updatePlayer;
 	     sup = &playerUpgrades;
@@ -36,11 +37,25 @@ STATE( RaceMode,
 	   }
 
 	   sup->apply( racers[i] );
-	   racers[i].startPosition = racers[i].position = -i*(256/racerCount);
-	   
-	 }	 
+	   racers[i].startPosition = racers[i].position = i;
+	   node.z = i*160;
+	   node.x = random(int8_t(-100), int8_t(100));
+	 }
+
+	 for( ; i<sizeof(scope.scene.nodeList)/sizeof(scope.scene.nodeList[0]); ++i ){
+	     Node &node = scope.scene.initNode(
+		 rock_mesh,
+		 sizeof(rock_mesh)/sizeof(rock_mesh[0])
+		 );
+	     
+	     node.update = updateObstacle;
+	     node.flags |= FLAG_SQUARE;
+	     node.z = (i-racerCount)*137;
+	     node.x = Fixed(random(int8_t(-100), int8_t(100))) * 5;
+	     node.rotY = random(int8_t(-100), int8_t(100));
+	 }
  
-	 clearScreen = CLEAR_BLACK;
+	 clearScreen = CLEAR_NONE;
 	 playChiptune([](uint16_t t){
 		 return (t>>5|t>>8|t>>2);
 	     });
@@ -59,7 +74,6 @@ STATE( RaceMode,
 	 scope.slowTick--;
 
 	 drawBackground();
-	 // memcpy_P( arduboy.sBuffer, track_bitmap+2, 128*64/8 );
 
 	 scope.scene.update();
 
@@ -68,7 +82,7 @@ STATE( RaceMode,
        },
 
        void updateHUD(){
-	 
+/*	 
 	 uint8_tp boostRow = &arduboy.sBuffer[0]; // [ WIDTH*((HEIGHT-1)/8) ];
 
 	 uint16_t fp = (racers[0].charge*128) / racers[0].maxCharge;
@@ -92,56 +106,89 @@ STATE( RaceMode,
 	     return;
 	   }
 	 }
-	 
+*/	 
        }
        
        bool updatePhysics( Node &racer );
       
        void updateDead( Node &racer ){
-	 auto &ship = racers[ racer.flags ];
+	 auto &ship = racers[ racer.data ];
 	 ship.dead--;
 	 if( !ship.dead ){
 	   racer.update = NULL;
 	   ship.dead = 1;
-	   racer.visible = 0;
+	   racer.flags |= FLAG_HIDDEN;
 	   scope.liveCount--;
 	 }else{
 	   racer.scale *= Fixed(1.25f);
 	   racer.y = Fixed::fromInternal(SIN(ship.dead))*10;
 	 }
        }
+
+       void updateObstacle( Node &rock ){
+	 rock.z -= 10;
+	 if( rock.z < -80 ){
+	     rock.z += 700;
+	     rock.x = Fixed(random(int8_t(-100), int8_t(100))) * 5;
+	     rock.rotY = random(int8_t(-128), int8_t(127));
+	     rock.scale = Fixed::fromInternal(random(int8_t(10),int8_t(20))) * 100;
+	 }
+       }
        
        void updateAI( Node &racer ){
-	 auto &ship = racers[ racer.flags ];
+	 auto &ship = racers[ racer.data ];
+	 racer.z -= 5;
+	 if( racer.z < -80 ){
+	     racer.z += 700;
+	     racer.x = random(int8_t(-100), int8_t(100));
+	 }
+	 /*
 
 	 if( ship.charge >= BOOST_COST ){
 	   ship.boost();
 	 }
-
-	 
 	 bool shouldJump = updatePhysics( racer ) && !ship.jumping;
 
 	 if( shouldJump && ship.charge >= JUMP_COST && random(int8_t(0), int8_t(0x7F)) < 20 ){
 	   ship.jump();
 	 }
-
+	 */
        }
 
        void updatePlayer( Node &player ){
-	 auto &ship = racers[ player.flags ];
-	       
-	 if( justPressed(A_BUTTON) && ship.charge >= JUMP_COST ){
-	   ship.jump();
-	 }else if( justPressed(B_BUTTON) && ship.charge >= BOOST_COST ){
-	   ship.boost();
+	 auto &ship = racers[ player.data ];
+
+	 Fixed xdelta = 0;
+
+	 if( isPressed(LEFT_BUTTON) ){
+	     xdelta = -0.5;
+	 }else if( isPressed(RIGHT_BUTTON) ){
+	     xdelta = 0.5;
 	 }
 
+	 if( player.x < -110 ) xdelta = 0.5;
+	 else if( player.x > 110 ) xdelta = -0.5;
+
+	 ship.ySpeed *= 0.98;
+	 ship.ySpeed += xdelta;
+	 ship.ySpeed = min(10, max(-10, ship.ySpeed));
+
+	 player.x += ship.ySpeed;
+	 player.y = Fixed::fromInternal(SIN(arduboy.frameCount*3))*7;
+	 player.rotZ = (ship.ySpeed * 3).getInteger();
+
+	 // player.x = min( 110, max(-110, player.x ));
+	       
+	 if( justPressed(A_BUTTON) ){
+	 }else if( justPressed(B_BUTTON) ){
+	 }
+	   
 	 updatePhysics( player );
 	 
        }
 
        bool updatePhysics( Node &node ){
-	 auto &ship = racers[ node.flags ];
+	 auto &ship = racers[ node.data ];
 	 
 	 if( !scope.tick ){	   
 	   ship.charge = min( ship.charge+ship.chargeSpeed, ship.maxCharge );
@@ -151,78 +198,8 @@ STATE( RaceMode,
 	 if( !scope.slowTick ){
 	   ship.shield = min( ship.shield+ship.shieldRegen, ship.maxShield );
 	 }
-	   
-	 if( node.y <= 0 || ship.jumping ){
-	   	   
-	   if( ship.jumping ){
-	     ship.ySpeed += 10;
-	     ship.jumping--;
-	   }else{
-	     ship.ySpeed += Fixed(0.75f);
-	   }
-	   
-	 }else
-	   ship.ySpeed -= Fixed(0.5f);
 
-	 ship.ySpeed *= Fixed(0.93f);
-	 node.y += ship.ySpeed;
-
-	 ship.position -= ship.speed;
-	 
-	 if( node.y > 10 )
-	   ship.position -= 2;
-	 
-	 node.rotY = ship.position.getInteger()-64;
-
-	 node.x = SINfp( ship.position.getInteger() ) * 256;
-	 node.z = COSfp( ship.position.getInteger() ) * 256;
-
-	 bool shouldJump = false;
-
-	 for( uint8_t i=0; i<scope.scene.usedNodeCount; ++i ){
-	   if( i == node.id )
-	     continue;
-	   
-	   auto &other = scope.scene.nodeList[i];
-	   auto &otherShip = racers[other.flags];
-
-	   if( otherShip.dead )
-	     continue;
-	   
-	   if( !shouldJump && ship.collides(otherShip, 60, false) )
-	     shouldJump = true;
-
-	   auto dy = node.y - other.y;
-	   if( dy > 10 || dy < -10 )
-	     continue;
-
-	   auto collision = ship.collides(otherShip, 10, true);
-	   if( !collision )
-	     continue;
-
-	   Fixed fds = (ship.speed - otherShip.speed) * collision * Fixed(0.5f);
-	   ship.speed -= fds;
-	   otherShip.speed += fds;
-
-	   auto ds = (fds*10).getInteger();
-	   if( ds < 0 )
-	     ds = -ds;
-	   
-	   if( ship.shield < ds ){
-	     ship.die();
-	     node.update = updateDead;
-	   }else
-	     ship.shield -= ds;
-	   
-	   if( otherShip.shield < ds ){
-	     otherShip.die();
-	     other.update = updateDead;
-	   }else
-	     otherShip.shield -= ds;
-	   
-	 }
-
-	 return shouldJump;
+	 return false;
 	 
        }
        

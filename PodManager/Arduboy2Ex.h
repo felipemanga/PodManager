@@ -63,6 +63,34 @@ public:
     }
   }
 
+  void fillHalfCircleUpper(int16_t x0, int16_t y0, uint8_t r, uint8_t color=0xFF)
+  {
+    drawFasterVLine(x0, y0-r, r+1, color);
+    
+    int8_t f = 1 - r;
+    int8_t ddF_x = 1;
+    int8_t ddF_y = -2 * r;
+    int8_t x = 0;
+    int8_t y = r;
+
+    while( x < y ){
+      
+      if( f >= 0 ){
+	y--;
+	ddF_y += 2;
+	f += ddF_y;
+      }
+
+      x++;
+      ddF_x += 2;
+      f += ddF_x;
+
+      drawSymmetricVLine(x0, x, y0-y, y+1, color);
+      drawSymmetricVLine(x0, y, y0-x, x+1, color);
+	
+    }
+  }
+  
     void drawSymmetricVLine( int16_t x, int8_t xoff, int16_t y, uint8_t h, uint8_t color=0xFF )
     {
 
