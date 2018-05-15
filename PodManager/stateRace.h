@@ -43,16 +43,25 @@ STATE( RaceMode,
 	 }
 
 	 for( ; i<sizeof(scope.scene.nodeList)/sizeof(scope.scene.nodeList[0]); ++i ){
-	     Node &node = scope.scene.initNode(
-		 rock_mesh,
-		 sizeof(rock_mesh)/sizeof(rock_mesh[0])
-		 );
+	     Node *node;
+	     if( i&1 ){
+		 node = &scope.scene.initNode(
+		     rock_mesh,
+		     sizeof(rock_mesh)/sizeof(rock_mesh[0])
+		     );
+		 node->flags |= FLAG_SQUARE;
+	     }else{
+		 node = &scope.scene.initNode(
+		     rock2_mesh,
+		     sizeof(rock2_mesh)/sizeof(rock2_mesh[0])
+		     );
+		 node->flags |= FLAG_UPPER;
+	     }
 	     
-	     node.update = updateObstacle;
-	     node.flags |= FLAG_SQUARE;
-	     node.z = (i-racerCount)*137;
-	     node.x = Fixed(random(int8_t(-100), int8_t(100))) * 5;
-	     node.rotY = random(int8_t(-100), int8_t(100));
+	     node->update = updateObstacle;
+	     node->z = (i-racerCount)*137;
+	     node->x = Fixed(random(int8_t(-100), int8_t(100))) * 5;
+	     node->rotY = random(int8_t(-100), int8_t(100));
 	 }
  
 	 clearScreen = CLEAR_NONE;

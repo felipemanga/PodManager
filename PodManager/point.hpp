@@ -204,62 +204,60 @@ Fixed SINfp( Fixed a ){
 template<typename Number>
 class Matrix4 {
 public:
-  Number a[16];
+  Number a[12];
 
   Matrix4() = default;
 
   Matrix4<Number> &identity(){
     auto p = a;
-    *p++ = 1; *p++ = 0; *p++ = 0; *p++ = 0;
-    *p++ = 0; *p++ = 1; *p++ = 0; *p++ = 0;
-    *p++ = 0; *p++ = 0; *p++ = 1; *p++ = 0;
-    *p++ = 0; *p++ = 0; *p++ = 0; *p++ = 1;
+    *p++ = 1; *p++ = 0; *p++ = 0;
+    *p++ = 0; *p++ = 1; *p++ = 0;
+    *p++ = 0; *p++ = 0; *p++ = 1;
+    *p++ = 0; *p++ = 0; *p++ = 0;
     return *this;
   }
 
   template<typename ONumber>
   Matrix4<Number> &operator =(const Matrix4<ONumber> &o ){
     auto p = a, b=o.a;
-    *p++ = *b++; *p++ = *b++; *p++ = *b++; *p++ = *b++;
-    *p++ = *b++; *p++ = *b++; *p++ = *b++; *p++ = *b++;
-    *p++ = *b++; *p++ = *b++; *p++ = *b++; *p++ = *b++;
-    *p++ = *b++; *p++ = *b++; *p++ = *b++; *p++ = *b++;
+    *p++ = *b++; *p++ = *b++; *p++ = *b++;
+    *p++ = *b++; *p++ = *b++; *p++ = *b++;
+    *p++ = *b++; *p++ = *b++; *p++ = *b++;
+    *p++ = *b++; *p++ = *b++; *p++ = *b++;
     return *this;
   }
 
 
   Matrix4<Number> &setTranslation( const Number &x, const Number &y, const Number &z ){
     Number *p = a;
-    *p++ = 1; *p++ = 0; *p++ = 0; *p++ = 0;
-    *p++ = 0; *p++ = 1; *p++ = 0; *p++ = 0;
-    *p++ = 0; *p++ = 0; *p++ = 1; *p++ = 0;
-    *p++ = x; *p++ = y; *p++ = z; *p++ = 1;
+    *p++ = 1; *p++ = 0; *p++ = 0;
+    *p++ = 0; *p++ = 1; *p++ = 0;
+    *p++ = 0; *p++ = 0; *p++ = 1;
+    *p++ = x; *p++ = y; *p++ = z;
     return *this;
   }
 
   Matrix4<Number> &translate( const Number &x, const Number &y, const Number &z ){
-    a[12] = a[0] * x + a[4] * y + a[8]  * z + a[12];
-    a[13] = a[1] * x + a[5] * y + a[9]  * z + a[13];
-    a[14] = a[2] * x + a[6] * y + a[10] * z + a[14];
-    a[15] = a[3] * x + a[7] * y + a[11] * z + a[15];
+    a[ 9] = a[0] * x + a[3] * y + a[6]  * z + a[ 9];
+    a[10] = a[1] * x + a[4] * y + a[7]  * z + a[10];
+    a[11] = a[2] * x + a[5] * y + a[8]  * z + a[11];
     return *this;
   }
   
 
   Matrix4<Number> &setScale( const Number &x, const Number &y, const Number &z ){
     auto p = a;
-    *p++ = x; *p++ = 0; *p++ = 0; *p++ = 0;
-    *p++ = 0; *p++ = y; *p++ = 0; *p++ = 0;
-    *p++ = 0; *p++ = 0; *p++ = z; *p++ = 0;
-    *p++ = 0; *p++ = 0; *p++ = 0; *p++ = 1;
+    *p++ = x; *p++ = 0; *p++ = 0;
+    *p++ = 0; *p++ = y; *p++ = 0;
+    *p++ = 0; *p++ = 0; *p++ = z;
+    *p++ = 0; *p++ = 0; *p++ = 0;
     return *this;
   }
 
   Matrix4<Number> &scale( const Number &x, const Number &y, const Number &z ){
-    a[0] *= x; a[4] *= y; a[8]  *= z;
-    a[1] *= x; a[5] *= y; a[9]  *= z;
-    a[2] *= x; a[6] *= y; a[10] *= z;
-    a[3] *= x; a[7] *= y; a[11] *= z;
+    a[0] *= x; a[3] *= y; a[6]  *= z;
+    a[1] *= x; a[4] *= y; a[7]  *= z;
+    a[2] *= x; a[5] *= y; a[8]  *= z;
     return *this;
   }
 
@@ -276,16 +274,15 @@ public:
     p[1] = -c * f;
     p[2] = -d;
 
-    p[4] = -bd * e + a * f;
-    p[5] =  bd * f + a * e;
-    p[6] = -b * c;
+    p[3] = -bd * e + a * f;
+    p[4] =  bd * f + a * e;
+    p[5] = -b * c;
 
-    p[8] =  ad * e + b * f;
-    p[9] = -ad * f + b * e;
-    p[10] =  a * c;
+    p[6] =  ad * e + b * f;
+    p[7] = -ad * f + b * e;
+    p[8] =  a * c;
 
-    p[3] = p[7] = p[11] = p[12] = p[13] = p[14] = 0;
-    p[15] = 1;
+    p[9] = p[10] = p[11] = 0;
     
     return *this;
   }
@@ -294,12 +291,11 @@ public:
     auto p = this->a;
     Number c = COSfp(x), s = SINfp(x);
 
-    p[0] = 1;    p[4] = 0;    p[8] =  0;
-    p[1] = 0;    p[5] = c;    p[9] = -s;
-    p[2] = 0;    p[6] = s;    p[10] = c;
+    p[0] = 1;    p[3] = 0;    p[6] =  0;
+    p[1] = 0;    p[4] = c;    p[7] = -s;
+    p[2] = 0;    p[5] = s;    p[8] = c;
 
-    p[3] = p[7] = p[11] = p[12] = p[13] = p[14] = 0;
-    p[15] = 1;
+    p[9] = p[10] = p[11] = 0;
     
     return *this;
   }
@@ -311,31 +307,24 @@ public:
     const auto &ae = this->a;
     auto &te = this->a;
 
-    auto a11 = ae[ 0 ], a12 = ae[ 4 ], a13 = ae[ 8 ],  a14 = ae[ 12 ];
-    auto a21 = ae[ 1 ], a22 = ae[ 5 ], a23 = ae[ 9 ],  a24 = ae[ 13 ];
-    auto a31 = ae[ 2 ], a32 = ae[ 6 ], a33 = ae[ 10 ], a34 = ae[ 14 ];
-    auto a41 = ae[ 3 ], a42 = ae[ 7 ], a43 = ae[ 11 ], a44 = ae[ 15 ];
+    auto a11 = ae[ 0 ], a12 = ae[ 3 ], a13 = ae[ 6 ],  a14 = ae[ 9 ];
+    auto a21 = ae[ 1 ], a22 = ae[ 4 ], a23 = ae[ 7 ],  a24 = ae[ 10 ];
+    auto a31 = ae[ 2 ], a32 = ae[ 5 ], a33 = ae[ 8 ],  a34 = ae[ 11 ];
 
     te[ 0 ] = a11 * c + a13 * -s;
-    te[ 4 ] = a12;
-    te[ 8 ] = a11 * s + a13 * c;
-    te[ 12 ] = a14;
+    te[ 3 ] = a12;
+    te[ 6 ] = a11 * s + a13 * c;
+    te[ 9 ] = a14;
 
     te[ 1 ] = a21 * c + a23 * -s;
-    te[ 5 ] = a22;
-    te[ 9 ] = a21 * s + a23 * c;
-    te[ 13 ] = a24;
+    te[ 4 ] = a22;
+    te[ 7 ] = a21 * s + a23 * c;
+    te[ 10 ] = a24;
 
     te[ 2 ] = a31 * c + a33 * -s;
-    te[ 6 ] = a32;
-    te[ 10 ] = a31 * s + a33 * c;
-    te[ 14 ] = a34;
-
-    // te[ 3 ] = a41 * c + a43 * -s;
-    // te[ 7 ] = a42;
-    // te[ 11 ] = a41 * s + a43 * c;
-    // te[ 15 ] = a44;
-    
+    te[ 5 ] = a32;
+    te[ 8 ] = a31 * s + a33 * c;
+    te[ 11 ] = a34;
     
     return *this;
   }        
@@ -344,12 +333,11 @@ public:
     auto p = this->a;
     Number c = COSfp(x), s = SINfp(x);
 
-    p[0] = c;    p[4] = 0;    p[8] =  s;
-    p[1] = 0;    p[5] = 1;    p[9] =  0;
-    p[2] =-s;    p[6] = 0;    p[10] = c;
+    p[0] = c;    p[3] = 0;    p[6] =  s;
+    p[1] = 0;    p[4] = 1;    p[7] =  0;
+    p[2] =-s;    p[5] = 0;    p[8] = c;
 
-    p[3] = p[7] = p[11] = p[12] = p[13] = p[14] = 0;
-    p[15] = 1;
+    p[9] = p[10] = p[11] = 0;
     
     return *this;
   }    
@@ -372,34 +360,28 @@ public:
     const auto &be = b.a;
     auto &te = this->a;
 
-    auto a11 = ae[ 0 ], a12 = ae[ 4 ], a13 = ae[ 8 ],  a14 = ae[ 12 ];
-    auto a21 = ae[ 1 ], a22 = ae[ 5 ], a23 = ae[ 9 ],  a24 = ae[ 13 ];
-    auto a31 = ae[ 2 ], a32 = ae[ 6 ], a33 = ae[ 10 ], a34 = ae[ 14 ];
-    // auto a41 = ae[ 3 ], a42 = ae[ 7 ], a43 = ae[ 11 ], a44 = ae[ 15 ];
-    const auto &b11 = be[ 0 ], &b12 = be[ 4 ], &b13 = be[ 8 ],  &b14 = be[ 12 ];
-    const auto &b21 = be[ 1 ], &b22 = be[ 5 ], &b23 = be[ 9 ],  &b24 = be[ 13 ];
-    const auto &b31 = be[ 2 ], &b32 = be[ 6 ], &b33 = be[ 10 ], &b34 = be[ 14 ];
-    // const auto &b41 = be[ 3 ], &b42 = be[ 7 ], &b43 = be[ 11 ], &b44 = be[ 15 ];
+    auto a11 = ae[ 0 ], a12 = ae[ 3 ], a13 = ae[ 6 ],  a14 = ae[ 9 ];
+    auto a21 = ae[ 1 ], a22 = ae[ 4 ], a23 = ae[ 7 ],  a24 = ae[ 10 ];
+    auto a31 = ae[ 2 ], a32 = ae[ 5 ], a33 = ae[ 8 ],  a34 = ae[ 11 ];
+    
+    const auto &b11=be[ 0 ], &b12 = be[ 3 ], &b13 = be[ 6 ],  &b14 = be[ 9 ];
+    const auto &b21=be[ 1 ], &b22 = be[ 4 ], &b23 = be[ 7 ],  &b24 = be[ 10 ];
+    const auto &b31=be[ 2 ], &b32 = be[ 5 ], &b33 = be[ 8 ],  &b34 = be[ 11 ];
 
     te[ 0 ] = a11 * b11 + a12 * b21 + a13 * b31 /* + a14 * b41 */;
-    te[ 4 ] = a11 * b12 + a12 * b22 + a13 * b32 /* + a14 * b42 */;
-    te[ 8 ] = a11 * b13 + a12 * b23 + a13 * b33 /* + a14 * b43 */;
-    te[ 12 ] = a11 * b14 + a12 * b24 + a13 * b34 + a14;// * b44;
+    te[ 3 ] = a11 * b12 + a12 * b22 + a13 * b32 /* + a14 * b42 */;
+    te[ 6 ] = a11 * b13 + a12 * b23 + a13 * b33 /* + a14 * b43 */;
+    te[ 9 ] = a11 * b14 + a12 * b24 + a13 * b34 + a14;// * b44;
 
     te[ 1 ] = a21 * b11 + a22 * b21 + a23 * b31 /* + a24 * b41 */;
-    te[ 5 ] = a21 * b12 + a22 * b22 + a23 * b32 /* + a24 * b42 */;
-    te[ 9 ] = a21 * b13 + a22 * b23 + a23 * b33 /* + a24 * b43 */;
-    te[ 13 ] = a21 * b14 + a22 * b24 + a23 * b34 + a24;// * b44;
+    te[ 4 ] = a21 * b12 + a22 * b22 + a23 * b32 /* + a24 * b42 */;
+    te[ 7 ] = a21 * b13 + a22 * b23 + a23 * b33 /* + a24 * b43 */;
+    te[ 10 ] = a21 * b14 + a22 * b24 + a23 * b34 + a24;// * b44;
 
     te[ 2 ] = a31 * b11 + a32 * b21 + a33 * b31 /* + a34 * b41 */;
-    te[ 6 ] = a31 * b12 + a32 * b22 + a33 * b32 /* + a34 * b42 */;
-    te[ 10 ] = a31 * b13 + a32 * b23 + a33 * b33 /* + a34 * b43 */;
-    te[ 14 ] = a31 * b14 + a32 * b24 + a33 * b34 + a34;// * b44;
-
-    te[ 3 ] = 0 /* a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41 */;
-    te[ 7 ] = 0 /* a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42 */;
-    te[ 11 ] = 0 /* a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43 */;
-    te[ 15 ] = 1; // a41 * b14 + a42 * b24 + a43 * b34 + Fixed(1); // a44 * b44;
+    te[ 5 ] = a31 * b12 + a32 * b22 + a33 * b32 /* + a34 * b42 */;
+    te[ 8 ] = a31 * b13 + a32 * b23 + a33 * b33 /* + a34 * b43 */;
+    te[ 11 ] = a31 * b14 + a32 * b24 + a33 * b34 + a34;// * b44;
     
     return *this;
   }
@@ -437,13 +419,11 @@ public:
   Point3D &operator *=( const Matrix &mat ){
 
     auto &e = mat.a;
-    Fixed x = this->x, y = this->y, z = this->z; // , w = this->w;
+    Fixed x = this->x, y = this->y, z = this->z;
 
-    this->x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ]; // * w;
-    this->y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ]; // * w;
-    this->z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ]; // * w;
-    // this->w = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] * w;
-
+    this->x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z + e[ 9 ];
+    this->y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z + e[ 10 ];
+    this->z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z + e[ 11 ];
     return *this;
   }
 
@@ -641,7 +621,7 @@ public:
 };
 
 
-typedef Scene<50,6> Scene36_3;
+typedef Scene<50,7> Scene36_3;
 
 const uint8_t JUMP_COST = 12;
 const uint8_t BOOST_COST = 20;

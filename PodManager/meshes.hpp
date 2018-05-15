@@ -74,3 +74,10 @@ const Point3D rock_mesh[] PROGMEM = {
     { 0,7,0, 1, 7 },
     { 0,12,0, 1, 5 }
 };
+
+
+const Point3D rock2_mesh[] PROGMEM = {
+    { 0,0,0, 1, 3 },
+    { 3,0,0, 1, 7 },
+    { 0,0,7, 1, 5 }
+};
