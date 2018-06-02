@@ -518,11 +518,14 @@ public:
   Matrix camera;
 
   uint8_t usedPointCount, usedNodeCount;
+
+  uint8_t invertPerspective;
   
   void init(){
 
     usedPointCount = 0;
     usedNodeCount = 0;
+    invertPerspective = 0;
     
     for( int i=0; i<pointCount; ++i ){
       zBuffer[i].nodeId = 0xFF;
@@ -530,6 +533,39 @@ public:
     
   }
 
+  void moveToEnd( Node &node, uint8_t pc ){
+    uint8_t w = 0;
+    for( uint8_t r=0; r<usedPointCount; r++ ){
+      auto &zbi = zBuffer[r];
+      if( zbi.nodeId != node.id )
+	zBuffer[w++] = zbi;
+    }
+
+    for( uint8_t r=0; r<pc; r++ ){
+      auto &zbi = zBuffer[w++];
+      zbi.nodeId = node.id;
+      zbi.pointId = r;
+    }
+
+  }
+
+
+  void moveToStart( Node &node, uint8_t pc ){
+    uint8_t w = usedPointCount-1;
+    for( uint8_t r=w; r<0xFF; r-- ){
+      auto &zbi = zBuffer[r];
+      if( zbi.nodeId != node.id )
+	zBuffer[w--] = zbi;
+    }
+
+    for( uint8_t r=pc-1; r<0xFF; --r ){
+      auto &zbi = zBuffer[w--];
+      zbi.nodeId = node.id;
+      zbi.pointId = r;
+    }
+
+  }
+  
   Node &initNode( cPoint3Dp mesh, uint8_t pc ){
     
     Node &node = nodeList[usedNodeCount];
@@ -563,6 +599,7 @@ public:
 
       Matrix &mat = node.transform;
       mat = camera;
+
       mat.translate( node.x, node.y, node.z );
 
       //if( !node.rotX && !node.rotZ && node.rotY )
@@ -597,7 +634,7 @@ public:
       }
       
       tmp *= node.transform;
-      
+
       node.screenX = tmp.x.getInteger();
       node.screenY = tmp.y.getInteger();
 
@@ -621,7 +658,7 @@ public:
 };
 
 
-typedef Scene<50,7> Scene36_3;
+typedef Scene<40,11> Scene36_3;
 
 const uint8_t JUMP_COST = 12;
 const uint8_t BOOST_COST = 20;

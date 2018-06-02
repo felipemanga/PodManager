@@ -70,14 +70,9 @@ const Point3D player_mesh[] PROGMEM = {
 
 
 const Point3D rock_mesh[] PROGMEM = {
-    { 0,0,0, 1, 10 },
-    { 0,7,0, 1, 7 },
-    { 0,12,0, 1, 5 }
+  {   0, -100,  0, 0xFF, 150 }
 };
 
-
 const Point3D rock2_mesh[] PROGMEM = {
-    { 0,0,0, 1, 3 },
-    { 3,0,0, 1, 7 },
-    { 0,0,7, 1, 5 }
+  {    0, -100, 0, 0xAA, 150 }
 };

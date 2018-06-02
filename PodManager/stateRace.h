@@ -5,6 +5,7 @@ STATE( RaceMode,
 	 uint8_t tick;
 	 uint8_t slowTick;
 	 uint8_t liveCount;
+	 uint8_t section;
        },
        
        {
@@ -13,6 +14,8 @@ STATE( RaceMode,
 	 scope.scene.camera.setRotationX( -20 ).translate( 0, -70, 50 );
 	 scope.tick = 0;
 	 scope.slowTick = 0;
+
+	 scope.section = 0;
 	 
 	 ShipUpgrades tmp;
 	 ShipUpgrades *sup;
@@ -44,24 +47,25 @@ STATE( RaceMode,
 
 	 for( ; i<sizeof(scope.scene.nodeList)/sizeof(scope.scene.nodeList[0]); ++i ){
 	     Node *node;
+	     
 	     if( i&1 ){
 		 node = &scope.scene.initNode(
 		     rock_mesh,
 		     sizeof(rock_mesh)/sizeof(rock_mesh[0])
 		     );
-		 node->flags |= FLAG_SQUARE;
+		 // node->flags |= FLAG_SQUARE;
 	     }else{
 		 node = &scope.scene.initNode(
 		     rock2_mesh,
 		     sizeof(rock2_mesh)/sizeof(rock2_mesh[0])
 		     );
-		 node->flags |= FLAG_UPPER;
 	     }
 	     
+	     node->flags |= FLAG_UPPER;
 	     node->update = updateObstacle;
-	     node->z = (i-racerCount)*137;
-	     node->x = Fixed(random(int8_t(-100), int8_t(100))) * 5;
-	     node->rotY = random(int8_t(-100), int8_t(100));
+	     node->z = (i-racerCount)*100;
+	     node->x = 0;// Fixed(random(int8_t(-100), int8_t(100))) * 5;
+	     // node->rotY = random(int8_t(-100), int8_t(100));
 	 }
  
 	 clearScreen = CLEAR_NONE;
@@ -135,18 +139,22 @@ STATE( RaceMode,
        }
 
        void updateObstacle( Node &rock ){
-	 rock.z -= 10;
-	 if( rock.z < -80 ){
-	     rock.z += 700;
-	     rock.x = Fixed(random(int8_t(-100), int8_t(100))) * 5;
-	     rock.rotY = random(int8_t(-128), int8_t(127));
-	     rock.scale = Fixed::fromInternal(random(int8_t(10),int8_t(20))) * 100;
+	 rock.z -= 30;
+	 rock.x *= 0.8;
+	 rock.y *= 0.8;
+
+	 if( rock.z < -100 ){
+	     rock.z += 800;
+	     scope.section++;
+	     rock.x = Fixed::fromInternal(COS(scope.section))*500;
+	     rock.y = Fixed::fromInternal(SIN(scope.section))*500;
+	     scope.scene.moveToStart( rock, sizeof(rock_mesh)/sizeof(rock_mesh[0]) );
 	 }
        }
        
        void updateAI( Node &racer ){
 	 auto &ship = racers[ racer.data ];
-	 racer.z -= 5;
+	 racer.z -= 10;
 	 if( racer.z < -80 ){
 	     racer.z += 700;
 	     racer.x = random(int8_t(-100), int8_t(100));
