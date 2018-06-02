@@ -237,6 +237,13 @@ public:
     return *this;
   }
 
+  Matrix4<Number> &translateX( const Number &x ){
+    a[ 9] += a[0] * x;
+    a[10] += a[1] * x;
+    a[11] += a[2] * x;
+    return *this;
+  }
+  
   Matrix4<Number> &translate( const Number &x, const Number &y, const Number &z ){
     a[ 9] = a[0] * x + a[3] * y + a[6]  * z + a[ 9];
     a[10] = a[1] * x + a[4] * y + a[7]  * z + a[10];

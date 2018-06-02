@@ -6,12 +6,14 @@ STATE( RaceMode,
 	 uint8_t slowTick;
 	 uint8_t liveCount;
 	 uint8_t section;
+	 Fixed camX;
        },
        
        {
 
 	 scope.scene.init();
 	 scope.scene.camera.setRotationX( -20 ).translate( 0, -70, 50 );
+	 scope.camX = 0;
 	 scope.tick = 0;
 	 scope.slowTick = 0;
 
@@ -183,8 +185,8 @@ STATE( RaceMode,
 	     xdelta = 0.5;
 	 }
 
-	 if( player.x < -110 ) xdelta = 0.5;
-	 else if( player.x > 110 ) xdelta = -0.5;
+	 if( player.x < -250 ) xdelta = 0.5;
+	 else if( player.x > 250 ) xdelta = -0.5;
 
 	 ship.ySpeed *= 0.98;
 	 ship.ySpeed += xdelta;
@@ -193,6 +195,11 @@ STATE( RaceMode,
 	 player.x += ship.ySpeed;
 	 player.y = Fixed::fromInternal(SIN(arduboy.frameCount*3))*7;
 	 player.rotZ = (ship.ySpeed * 3).getInteger();
+
+	 Fixed ncx = scope.camX;
+	 ncx -= (ncx - player.x) * Fixed(0.1);
+	 scope.scene.camera.translateX( scope.camX-ncx );
+	 scope.camX = ncx;
 
 	 // player.x = min( 110, max(-110, player.x ));
 	       
